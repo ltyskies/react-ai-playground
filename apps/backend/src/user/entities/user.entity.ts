@@ -51,6 +51,14 @@ export class User {
   promptRules: string | null;
 
   /**
+   * 用户个人偏好
+   * @description 用户个人偏好，JSON 格式存储
+   * @decorator @Column({ name: 'personal_profile', type: 'json', nullable: true }) - 可为空的 JSON 列
+   */
+  @Column({ name: 'personal_profile', type: 'json', nullable: true })
+  personalProfile: Record<string, unknown> | null = null;
+
+  /**
    * 创建时间
    * @description 用户账号创建时间，自动记录
    * @decorator @CreateDateColumn({ name: 'created_at' }) - 自动记录创建时间

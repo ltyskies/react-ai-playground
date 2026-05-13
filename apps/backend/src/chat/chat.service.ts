@@ -27,57 +27,25 @@ import { Conversation } from './entities/conversation.entity';
 import { Message, MessageRole, StreamStatus } from './entities/message.entity';
 import type { ConversationRuntimeMessage } from './types/conversation-runtime-memory.type';
 import type { ConversationWorkspace } from './types/conversation-workspace.type';
-
-/** 默认会话标题候选列表，用于判断标题是否仍可被首轮消息自动覆盖。 */
-const DEFAULT_CONVERSATION_TITLES = ['New Chat', '新对话'];
-/** 已完成消息回放时，每个分片返回的最大字符数。 */
-const REPLAY_CHUNK_SIZE = 120;
-/** 未启用摘要时，旧版历史回放最多保留的消息条数。 */
-const LEGACY_PROMPT_MESSAGE_LIMIT = 20;
-/** 达到该轮次后开始考虑把历史对话折叠为摘要。 */
-const SUMMARY_TRIGGER_ROUNDS = 20;
-/** 无论摘要是否存在，都保留最近若干轮原始消息供模型直接参考。 */
-const RAW_HISTORY_RETENTION_ROUNDS = 8;
-/** 单次摘要合并处理的轮次数，避免一次提交过长上下文。 */
-const SUMMARY_BATCH_ROUNDS = 10;
-/** 主对话模型的系统提示词，约束代码回复格式与文件输出约定。 */
-const CODING_ASSISTANT_SYSTEM_PROMPT = `You are a helpful AI coding assistant. When providing code changes:
-
-1. If you provide a complete file replacement, use this format:
-\`\`\`language:filename.ext
-// complete code here
-\`\`\`
-
-2. IMPORTANT: The file system is FLAT. Use simple filenames like "App.tsx", "main.tsx", "utils.ts" without any paths like "src/" or "components/".
-
-3. The filename after the colon will be used to automatically apply the code to the correct file.
-
-4. Always provide complete, working code that can be directly applied to the file.
-
-5. If the file doesn't exist, it will be created automatically.`;
-/** 对话摘要作为背景记忆注入模型时使用的系统提示词。 */
-const CONVERSATION_MEMORY_SYSTEM_PROMPT = `Conversation compressed memory (internal, may be incomplete). Use this as background context only.
-If it conflicts with the recent raw conversation or the current user request, follow the recent raw conversation and the current user request.
-
-`;
-// 长对话摘要统一要求固定 Markdown 标题，便于后续轮次稳定复用。
-const CONVERSATION_SUMMARY_SYSTEM_PROMPT = `You maintain a rolling memory summary for a coding conversation.
-Return a complete Markdown document in Chinese and keep exactly these top-level headings:
-## 当前目标
-## 已确认需求
-## 关键约束
-## 重要文件/接口
-## 已做决策
-## 未解决问题
-## 用户偏好
-
-Rules:
-- Keep only stable information that is useful for future reasoning.
-- Remove greetings, repetition, and temporary chatter.
-- Do not invent facts that are not grounded in the conversation.
-- If the new rounds conflict with the previous summary, update the summary based on the new rounds.
-- Mention important filenames, interfaces, APIs, constraints, and pending decisions when present.
-- If a section has no useful content, write "- 无".`;
+import {
+  CODING_ASSISTANT_SYSTEM_PROMPT,
+  CONVERSATION_MEMORY_SYSTEM_PROMPT,
+  CONVERSATION_SUMMARY_SYSTEM_PROMPT,
+  buildPromptRulesMessage,
+  buildUserPrompt,
+  buildConversationSummaryPrompt,
+  getDisplayContent,
+} from './prompts';
+import type { CompletedConversationRound } from './prompts';
+import {
+  DEFAULT_CONVERSATION_TITLES,
+  REPLAY_CHUNK_SIZE,
+  LEGACY_PROMPT_MESSAGE_LIMIT,
+  SUMMARY_TRIGGER_ROUNDS,
+  RAW_HISTORY_RETENTION_ROUNDS,
+  SUMMARY_BATCH_ROUNDS,
+} from './config';
+import { createChatModel, createSummaryModel } from './config';
 
 /**
  * 流式生成选项
@@ -97,19 +65,6 @@ interface SaveMessageOptions {
   requestId?: string | null;
   /** 写入数据库时附带的流式状态 */
   streamStatus?: StreamStatus;
-}
-
-/**
- * 已完成的会话轮次
- * @description 由一条用户消息和一条助手消息组成，可用于摘要折叠
- */
-interface CompletedConversationRound {
-  /** 轮次对应的请求 ID */
-  requestId: string;
-  /** 该轮次中的用户消息 */
-  userMessage: ConversationRuntimeMessage;
-  /** 该轮次中的助手消息 */
-  assistantMessage: ConversationRuntimeMessage;
 }
 
 /**
@@ -164,29 +119,8 @@ export class ChatService {
     private configService: ConfigService,
     private conversationRuntimeMemoryService: ConversationRuntimeMemoryService,
   ) {
-    const apiKey = this.configService.get<string>('ai.deepseek.apiKey');
-    const baseURL = this.configService.get<string>('ai.deepseek.baseUrl');
-    const modelName = this.configService.get<string>('ai.deepseek.model');
-
-    this.chatModel = new ChatOpenAI({
-      configuration: {
-        baseURL,
-      },
-      apiKey,
-      modelName,
-      streaming: true,
-      temperature: 0.7,
-    });
-
-    this.summaryModel = new ChatOpenAI({
-      configuration: {
-        baseURL,
-      },
-      apiKey,
-      modelName,
-      streaming: false,
-      temperature: 0.2,
-    });
+    this.chatModel = createChatModel(this.configService);
+    this.summaryModel = createSummaryModel(this.configService);
   }
 
   /**
@@ -278,7 +212,7 @@ export class ChatService {
     const messages = runtimeMessages.map((message) => ({
       id: message.id,
       role: message.role,
-      content: this.getDisplayContent(message),
+      content: getDisplayContent(message),
       requestId: message.requestId || null,
       status: message.streamStatus || StreamStatus.COMPLETED,
       createdAt: message.createdAt,
@@ -383,13 +317,7 @@ export class ChatService {
 
     const messages: BaseMessage[] = [
       new SystemMessage(CODING_ASSISTANT_SYSTEM_PROMPT),
-      ...(promptRules
-        ? [
-            new SystemMessage(
-              `Follow these user-specific rules for every response unless a higher-priority system instruction conflicts:\n${promptRules}`,
-            ),
-          ]
-        : []),
+      ...(promptRules ? [buildPromptRulesMessage(promptRules)!] : []),
       ...(promptHistoryContext.memorySummary
         ? [
             new SystemMessage(
@@ -400,9 +328,7 @@ export class ChatService {
       ...promptHistoryContext.rawHistoryMessages.map((message) =>
         this.toModelHistoryMessage(message),
       ),
-      new HumanMessage(
-        this.buildUserPrompt(savedUserMessage.content, workspace),
-      ),
+      new HumanMessage(buildUserPrompt(savedUserMessage.content, workspace)),
     ];
 
     const stream = await this.chatModel.stream(messages);
@@ -572,28 +498,6 @@ export class ChatService {
   }
 
   /**
-   * 获取消息展示文本
-   * @description 对旧版带上下文封装的用户消息做兼容处理，只提取实际提问内容
-   * @param message - 运行时消息
-   * @returns 面向界面与摘要使用的消息正文
-   */
-  private getDisplayContent(message: ConversationRuntimeMessage) {
-    if (message.role !== MessageRole.USER) {
-      return message.content;
-    }
-
-    const legacyQuestionMatch = message.content.match(
-      /User Question:\s*([\s\S]+)$/i,
-    );
-
-    if (legacyQuestionMatch?.[1]) {
-      return legacyQuestionMatch[1].trim();
-    }
-
-    return message.content;
-  }
-
-  /**
    * 转换为模型历史消息
    * @description 根据消息角色映射为 LangChain 对应的消息类型
    * @param message - 运行时消息
@@ -601,7 +505,7 @@ export class ChatService {
    */
   private toModelHistoryMessage(message: ConversationRuntimeMessage) {
     if (message.role === MessageRole.USER) {
-      return new HumanMessage(this.getDisplayContent(message));
+      return new HumanMessage(getDisplayContent(message));
     }
 
     if (message.role === MessageRole.SYSTEM) {
@@ -609,32 +513,6 @@ export class ChatService {
     }
 
     return new AIMessage(message.content);
-  }
-
-  /**
-   * 构建用户提示词
-   * @description 把用户当前问题与选中的上下文文件拼接成发给模型的最终输入
-   * @param content - 用户输入内容
-   * @param workspace - 当前工作区快照
-   * @returns 最终用户提示词
-   */
-  private buildUserPrompt(content: string, workspace: ConversationWorkspace) {
-    const uniqueContextFiles = Array.from(
-      new Set(workspace.contextFiles || []),
-    ).filter((fileName) => workspace.files?.[fileName]);
-
-    if (uniqueContextFiles.length === 0) {
-      return content;
-    }
-
-    const contextContent = uniqueContextFiles
-      .map((fileName) => {
-        const file = workspace.files[fileName];
-        return `File: ${fileName}\n\`\`\`${file.language}\n${file.value}\n\`\`\``;
-      })
-      .join('\n\n');
-
-    return `Context Files:\n${contextContent}\n\nUser Question: ${content}`;
   }
 
   /**
@@ -842,9 +720,7 @@ export class ChatService {
   ) {
     const response = await this.summaryModel.invoke([
       new SystemMessage(CONVERSATION_SUMMARY_SYSTEM_PROMPT),
-      new HumanMessage(
-        this.buildConversationSummaryPrompt(memorySummary, rounds),
-      ),
+      new HumanMessage(buildConversationSummaryPrompt(memorySummary, rounds)),
     ]);
     const nextSummary = this.extractChunkContent(response.content).trim();
 
@@ -853,47 +729,6 @@ export class ChatService {
     }
 
     return nextSummary;
-  }
-
-  /**
-   * 构建摘要提示词
-   * @description 组织旧摘要和新增轮次，供摘要模型生成新的完整文档
-   * @param memorySummary - 当前摘要内容
-   * @param rounds - 新增待折叠轮次
-   * @returns 发给摘要模型的提示词
-   */
-  private buildConversationSummaryPrompt(
-    memorySummary: string,
-    rounds: CompletedConversationRound[],
-  ) {
-    return `请根据已有摘要与新增对话轮次，输出一份完整的更新后摘要文档。
-
-## 旧摘要
-${memorySummary || '- 无'}
-
-## 新增对话轮次
-${this.formatConversationRoundsForSummary(rounds)}`;
-  }
-
-  /**
-   * 格式化轮次摘要输入
-   * @description 将轮次列表转换为可读的文本块，便于摘要模型理解上下文
-   * @param rounds - 已完成轮次列表
-   * @returns 格式化后的轮次文本
-   */
-  private formatConversationRoundsForSummary(
-    rounds: CompletedConversationRound[],
-  ) {
-    return rounds
-      .map(
-        (round, index) => `### 轮次 ${index + 1}
-requestId: ${round.requestId}
-
-用户：${this.getDisplayContent(round.userMessage)}
-
-助手：${round.assistantMessage.content}`,
-      )
-      .join('\n\n');
   }
 
   /**
@@ -998,7 +833,7 @@ requestId: ${round.requestId}
     );
 
     if (existingUserMessage) {
-      if (this.getDisplayContent(existingUserMessage) !== content) {
+      if (getDisplayContent(existingUserMessage) !== content) {
         throw new BadRequestException(
           'Request content does not match the existing requestId',
         );
