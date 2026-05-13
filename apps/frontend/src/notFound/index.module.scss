@@ -1,0 +1,60 @@
+// index.module.scss
+
+$bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+
+.notFoundPage {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $bg-gradient;
+
+  // 使用 :global 覆盖 Result 组件内部样式
+  :global {
+    .ant-result {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(10px);
+      padding: 60px 100px;
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+      animation: fadeInUp 0.6s ease-out;
+
+      &-title {
+        font-size: 72px;
+        color: #1677ff;
+        font-weight: 800;
+      }
+
+      &-subtitle {
+        font-size: 18px;
+        color: #666;
+        margin-bottom: 24px;
+      }
+    }
+  }
+
+  .backBtn {
+    height: 45px;
+    padding: 0 30px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+
+    &:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 15px rgba(22, 119, 255, 0.3);
+    }
+  }
+}
+
+// 入场动画
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

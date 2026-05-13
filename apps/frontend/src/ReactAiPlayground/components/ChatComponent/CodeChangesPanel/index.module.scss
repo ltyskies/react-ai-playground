@@ -1,0 +1,326 @@
+// index.module.scss
+
+.panelContainer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-width: 0;
+    background: #fff;
+    overflow: hidden;
+}
+
+.panelHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 68px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fff;
+    gap: 12px;
+    flex-shrink: 0;
+
+    h3 {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 0;
+        font-size: 18px;
+        line-height: 1.2;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .badge {
+        padding: 3px 10px;
+        background: #eef6ff;
+        color: #1677ff;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+
+    .closeBtn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        border-radius: 10px;
+        cursor: pointer;
+        color: #666;
+        transition: all 0.2s;
+        flex-shrink: 0;
+
+        &:hover {
+            background: #f7f7f7;
+            border-color: #d8d8d8;
+            color: #333;
+        }
+    }
+}
+
+.batchActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fff;
+    flex-shrink: 0;
+
+    button {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 34px;
+        padding: 0 14px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .batchApplyBtn {
+        background: #10a37f;
+        color: #fff;
+
+        &:hover {
+            background: #0f8d6e;
+        }
+    }
+
+    .batchRevertBtn {
+        background: #fff7e8;
+        color: #ad6800;
+        border-color: #ffd591;
+
+        &:hover {
+            background: #fff1db;
+            border-color: #ffc069;
+        }
+    }
+}
+
+.changesList {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.changeGroup {
+    border: 1px solid #e6e8eb;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #fafcff 0%, #ffffff 100%);
+}
+
+.groupItems {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.changeItem {
+    margin-bottom: 0;
+    border: 1px solid #e6e8eb;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+    transition: all 0.2s;
+
+    &:hover {
+        border-color: #d6d9de;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+    }
+
+    &.applied {
+        border-color: #b7ebd8;
+        background: #f8fffb;
+
+        .changeHeader {
+            background: #f3fcf8;
+        }
+    }
+}
+
+.changeHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: #fafafa;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover {
+        background: #f5f5f5;
+    }
+
+    .headerLeft {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #333;
+        min-width: 0;
+        flex: 1;
+
+        .fileName {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-weight: 500;
+            font-size: 13px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            flex-shrink: 0;
+
+            .added {
+                color: #10a37f;
+            }
+
+            .removed {
+                color: #f44336;
+            }
+        }
+    }
+
+    .headerActions {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+
+    .actionBtn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &.applyBtn {
+            background: #10a37f;
+            color: #fff;
+
+            &:hover {
+                background: #0f8d6e;
+            }
+        }
+
+        &.revertBtn {
+            background: #ff9800;
+            color: #fff;
+
+            &:hover {
+                background: #f57c00;
+            }
+        }
+    }
+}
+
+.diffContent {
+    padding: 12px;
+    background: #fafafa;
+    font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    max-height: min(420px, 60vh);
+    overflow: auto;
+    overscroll-behavior: contain;
+
+    &::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #c7ced9;
+        border-radius: 999px;
+    }
+}
+
+.diffLine {
+    display: flex;
+    white-space: pre;
+
+    .linePrefix {
+        width: 20px;
+        flex-shrink: 0;
+        text-align: center;
+        user-select: none;
+    }
+
+    .lineContent {
+        flex: 1;
+    }
+
+    &.lineAdded {
+        background: #e8f5e9;
+        color: #2e7d32;
+
+        .linePrefix {
+            color: #4caf50;
+            font-weight: bold;
+        }
+    }
+
+    &.lineRemoved {
+        background: #ffebee;
+        color: #c62828;
+
+        .linePrefix {
+            color: #f44336;
+            font-weight: bold;
+        }
+    }
+
+    &.lineUnchanged {
+        color: #666;
+    }
+}
+
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    padding: 40px 20px;
+    color: #999;
+    text-align: center;
+
+    svg {
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    p {
+        margin: 0 0 8px;
+        font-size: 14px;
+        color: #666;
+    }
+
+    span {
+        font-size: 12px;
+    }
+}

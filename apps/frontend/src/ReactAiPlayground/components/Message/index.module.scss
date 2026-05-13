@@ -1,0 +1,113 @@
+.msg {
+    position: absolute;
+    right: 8px;
+    bottom: 0;
+    left: 8px;
+    z-index: 10;
+
+    display: flex;
+    max-height: calc(100% - 300px);
+    min-height: 40px;
+    margin-bottom: 8px;
+    color: var(--color);
+
+    background-color: var(--bg-color);
+    border: 2px solid #fff;
+    border-radius: 6px;
+
+    border-color: var(--color);
+  
+    &.error {
+      --color: #f56c6c;
+      --bg-color: #fef0f0;
+    }
+  
+    &.warn {
+      --color: #e6a23c;
+      --bg-color: #fdf6ec;
+    }
+}
+  
+pre {
+    padding: 12px 20px;
+    margin: 0;
+    overflow: auto;
+    white-space: break-spaces;
+}
+  
+.dismiss {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+
+    display: block;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+
+    font-size: 9px;
+    line-height: 18px;
+    color: var(--bg-color);
+
+    text-align: center;
+    cursor: pointer;
+    background-color: var(--color);
+    border: none;
+    border-radius: 9px;
+}
+
+.fixBtn {
+  // 布局
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px; // 图标和文字的间距
+  
+  // 尺寸与边距
+  padding: 6px 14px;
+  margin-right: 12px; // 替代原本的 inline style
+  
+  // 字体
+  font-size: 13px;
+  font-weight: 600; // 稍微加粗更清晰
+  color: #fff;
+  letter-spacing: 0.3px;
+  
+  // 核心视觉：魔法紫色渐变 (AI 常用色)
+  background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); 
+  // 或者更深沉的科技紫：
+  background: linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%);
+  
+  border: none;
+  border-radius: 20px; // 胶囊形状，更有亲和力
+  
+  // 质感：柔和的投影
+  box-shadow: 0 4px 12px rgba(74, 0, 224, 0.2);
+  
+  // 交互
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+
+  // 悬停效果：上浮 + 投影加深
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(74, 0, 224, 0.35);
+    filter: brightness(1.05);
+  }
+
+  // 点击效果：下沉
+  &:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 6px rgba(74, 0, 224, 0.2);
+    filter: brightness(0.95);
+  }
+}
+
+// 针对 error 容器的微调 (可选)
+.error {
+  // 确保报错容器的内边距足够放下按钮
+  display: flex;
+  align-items: center;
+  // ... 其他原有样式
+}

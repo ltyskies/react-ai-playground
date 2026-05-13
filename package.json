@@ -1,0 +1,20 @@
+{
+  "name": "react-ai-playground",
+  "version": "0.0.0",
+  "private": true,
+  "description": "React AI Playground - pnpm monorepo",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "dev:server": "pnpm --filter react-ai-studio dev",
+    "dev:client": "pnpm --filter react-ai-studio-client dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "clean": "pnpm -r exec rm -rf dist node_modules"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=9"
+  },
+  "packageManager": "pnpm@10.17.1"
+}
