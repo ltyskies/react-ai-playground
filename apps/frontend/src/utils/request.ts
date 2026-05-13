@@ -14,6 +14,13 @@ import { getToken, removeToken } from '@/utils/token'
 // 项目内部模块 - 路由实例
 import router from '@/router'
 
+/** 401 未授权统一处理：清除 Token、跳转登录并刷新页面 */
+export const handleUnauthorized = () => {
+    removeToken()
+    router.navigate('/login')
+    window.location.reload()
+}
+
 /**
  * API 基础 URL
  * 后端服务地址
@@ -62,12 +69,7 @@ request.interceptors.response.use((response) => {
     // 监控 401 Token 失效
     console.dir(error)
     if (error?.response?.status === 401) {
-        // Token 失效，清除本地存储
-        removeToken()
-        // 跳转到登录页面
-        router.navigate('/login')
-        // 刷新页面清除状态
-        window.location.reload()
+        handleUnauthorized()
     }
     return Promise.reject(error)
 })
