@@ -80,6 +80,14 @@ export class Conversation {
   memoryUpdatedAt: Date | null;
 
   /**
+   * 是否已提取用户画像
+   * @description 标记该会话是否已用于提取用户个人偏好画像
+   * @decorator @Column({ name: 'profile_extracted', default: false }) - 布尔列，默认 false
+   */
+  @Column({ name: 'profile_extracted', default: false })
+  profileExtracted: boolean;
+
+  /**
    * 创建时间
    * @description 会话创建时间，自动记录
    * @decorator @CreateDateColumn({ name: 'created_at' }) - 自动记录创建时间

@@ -31,6 +31,8 @@ import {
   CODING_ASSISTANT_SYSTEM_PROMPT,
   CONVERSATION_MEMORY_SYSTEM_PROMPT,
   CONVERSATION_SUMMARY_SYSTEM_PROMPT,
+  PERSONAL_PROFILE_SYSTEM_PROMPT,
+  buildPersonalProfilePrompt,
   buildPromptRulesMessage,
   buildUserPrompt,
   buildConversationSummaryPrompt,
@@ -130,15 +132,21 @@ export class ChatService {
    * @returns 创建成功后的会话 ID
    */
   async createConversation(userId?: number) {
+    const requiredUserId = this.getRequiredUserId(userId);
     const conversation = this.conversationRepo.create({
-      userId: this.getRequiredUserId(userId),
+      userId: requiredUserId,
       title: 'New Chat',
       workspaceSnapshot: null,
       memorySummary: null,
       summarizedUntilMessageId: null,
       memoryUpdatedAt: null,
+      profileExtracted: false,
     });
     const savedConversation = await this.conversationRepo.save(conversation);
+
+    this.extractProfilesForUser(requiredUserId).catch((err) =>
+      console.error('Failed to extract profiles for user:', err),
+    );
 
     return Result.successWithData(savedConversation.id);
   }
@@ -309,6 +317,7 @@ export class ChatService {
     const promptHistory =
       await this.getConversationRuntimeMessages(conversationId);
     const promptRules = await this.getUserPromptRules(userId);
+    const personalProfile = await this.getUserPersonalProfile(userId);
     const promptHistoryContext = await this.buildPromptHistoryContext(
       conversation,
       promptHistory,
@@ -318,6 +327,13 @@ export class ChatService {
     const messages: BaseMessage[] = [
       new SystemMessage(CODING_ASSISTANT_SYSTEM_PROMPT),
       ...(promptRules ? [buildPromptRulesMessage(promptRules)!] : []),
+      ...(personalProfile
+        ? [
+            new SystemMessage(
+              `以下是当前已知的用户偏好画像，请在回复时参考这些偏好：\n${personalProfile}`,
+            ),
+          ]
+        : []),
       ...(promptHistoryContext.memorySummary
         ? [
             new SystemMessage(
@@ -371,6 +387,96 @@ export class ChatService {
     }
 
     return user.promptRules.trim();
+  }
+
+  /**
+   * 获取用户画像内容
+   * @description 读取用户 personalProfile JSON 字段中的画像文本
+   * @param userId - 当前登录用户 ID
+   * @returns 画像内容文本，未配置时返回空字符串
+   */
+  private async getUserPersonalProfile(userId: number | undefined) {
+    const user = await this.userRepo.findOne({
+      where: { id: this.getRequiredUserId(userId) },
+    });
+
+    if (!user?.personalProfile || typeof user.personalProfile !== 'object') {
+      return '';
+    }
+
+    const profile = user.personalProfile as { content?: string };
+
+    return profile.content?.trim() || '';
+  }
+
+  /**
+   * 从单个会话提取用户画像
+   * @description 收集会话中所有已完成轮次，结合当前画像调用模型生成新画像
+   * @param userId - 用户 ID
+   * @param conversationId - 会话 ID
+   */
+  private async extractProfileFromConversation(
+    userId: number,
+    conversationId: number,
+  ) {
+    const history = await this.getConversationRuntimeMessages(conversationId);
+    const rounds = this.collectCompletedRounds(history);
+
+    if (rounds.length === 0) {
+      return;
+    }
+
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) {
+      return;
+    }
+
+    const currentProfile = user.personalProfile
+      ? (user.personalProfile as { content?: string }).content?.trim() || ''
+      : '';
+
+    const response = await this.summaryModel.invoke([
+      new SystemMessage(PERSONAL_PROFILE_SYSTEM_PROMPT),
+      new HumanMessage(buildPersonalProfilePrompt(currentProfile, rounds)),
+    ]);
+
+    const newProfileContent = this.extractChunkContent(response.content).trim();
+    if (!newProfileContent) {
+      return;
+    }
+
+    user.personalProfile = {
+      content: newProfileContent,
+      updatedAt: new Date().toISOString(),
+    };
+    await this.userRepo.save(user);
+
+    await this.conversationRepo.update(conversationId, {
+      profileExtracted: true,
+    });
+  }
+
+  /**
+   * 批量提取用户未处理会话的画像
+   * @description 查找用户所有未提取画像的会话，逐个串行处理
+   * @param userId - 用户 ID
+   */
+  private async extractProfilesForUser(userId: number) {
+    const unextractedConversations = await this.conversationRepo.find({
+      where: { userId, profileExtracted: false },
+      order: { updatedAt: 'ASC' },
+    });
+
+    for (const conversation of unextractedConversations) {
+      try {
+        await this.extractProfileFromConversation(userId, conversation.id);
+      } catch (error) {
+        console.error(
+          `Failed to extract profile from conversation ${conversation.id}:`,
+          error,
+        );
+      }
+    }
   }
 
   /**
