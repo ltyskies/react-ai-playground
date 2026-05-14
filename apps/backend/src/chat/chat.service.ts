@@ -31,14 +31,20 @@ import {
   CODING_ASSISTANT_SYSTEM_PROMPT,
   CONVERSATION_MEMORY_SYSTEM_PROMPT,
   CONVERSATION_SUMMARY_SYSTEM_PROMPT,
-  PERSONAL_PROFILE_SYSTEM_PROMPT,
-  buildPersonalProfilePrompt,
+  PROFILE_FACT_EXTRACTOR_SYSTEM_PROMPT,
+  buildFactExtractorPrompt,
+  PROFILE_SYNTHESIZER_SYSTEM_PROMPT,
+  buildProfileSynthesizerPrompt,
   buildPromptRulesMessage,
   buildUserPrompt,
   buildConversationSummaryPrompt,
   getDisplayContent,
 } from './prompts';
 import type { CompletedConversationRound } from './prompts';
+import type {
+  ProfileObservation,
+  ProfileFactExtractionResult,
+} from './types/profile-observation.type';
 import {
   DEFAULT_CONVERSATION_TITLES,
   REPLAY_CHUNK_SIZE,
@@ -46,6 +52,8 @@ import {
   SUMMARY_TRIGGER_ROUNDS,
   RAW_HISTORY_RETENTION_ROUNDS,
   SUMMARY_BATCH_ROUNDS,
+  PROFILE_FACT_EXTRACTION_BATCH_ROUNDS,
+  PROFILE_EXTRACTION_MIN_ROUNDS,
 } from './config';
 import { createChatModel, createSummaryModel } from './config';
 
@@ -140,7 +148,8 @@ export class ChatService {
       memorySummary: null,
       summarizedUntilMessageId: null,
       memoryUpdatedAt: null,
-      profileExtracted: false,
+      profileExtractedUntilMessageId: null,
+      profileExtractedAt: null,
     });
     const savedConversation = await this.conversationRepo.save(conversation);
 
@@ -410,19 +419,119 @@ export class ChatService {
   }
 
   /**
-   * 从单个会话提取用户画像
-   * @description 收集会话中所有已完成轮次，结合当前画像调用模型生成新画像
+   * 从单个会话增量提取用户偏好事实（Phase 1）
+   * @description 只处理上次提取之后的新增轮次，分批调用事实提取模型
    * @param userId - 用户 ID
    * @param conversationId - 会话 ID
+   * @returns 提取到的所有观察
    */
-  private async extractProfileFromConversation(
+  private async extractFactsFromConversation(
     userId: number,
     conversationId: number,
-  ) {
-    const history = await this.getConversationRuntimeMessages(conversationId);
-    const rounds = this.collectCompletedRounds(history);
+  ): Promise<ProfileObservation[]> {
+    const conversation = await this.conversationRepo.findOne({
+      where: { id: conversationId },
+    });
+    if (!conversation) {
+      return [];
+    }
 
-    if (rounds.length === 0) {
+    const history = await this.getConversationRuntimeMessages(conversationId);
+    const allRounds = this.collectCompletedRounds(history);
+
+    if (allRounds.length === 0) {
+      console.log(`[画像] 会话 ${conversationId} 无已完成轮次，跳过`);
+      return [];
+    }
+
+    const summarizedUntilId =
+      conversation.profileExtractedUntilMessageId || 0;
+    const newRounds = allRounds.filter(
+      (round) => this.getRoundMaxMessageId(round) > summarizedUntilId,
+    );
+
+    console.log(
+      `[画像] 会话 ${conversationId}: 总轮次 ${allRounds.length}, 新轮次 ${newRounds.length}, 已提取至消息ID ${summarizedUntilId}`,
+    );
+
+    if (
+      newRounds.length < PROFILE_EXTRACTION_MIN_ROUNDS
+    ) {
+      console.log(
+        `[画像] 会话 ${conversationId} 新轮次不足 ${PROFILE_EXTRACTION_MIN_ROUNDS}，跳过`,
+      );
+      return [];
+    }
+
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    const currentProfileSummary = user?.personalProfile
+      ? (user.personalProfile as { content?: string }).content?.trim() || ''
+      : '';
+
+    const allObservations: ProfileObservation[] = [];
+
+    for (
+      let startIndex = 0;
+      startIndex < newRounds.length;
+      startIndex += PROFILE_FACT_EXTRACTION_BATCH_ROUNDS
+    ) {
+      const batchRounds = newRounds.slice(
+        startIndex,
+        startIndex + PROFILE_FACT_EXTRACTION_BATCH_ROUNDS,
+      );
+
+      try {
+        const response = await this.summaryModel.invoke([
+          new SystemMessage(PROFILE_FACT_EXTRACTOR_SYSTEM_PROMPT),
+          new HumanMessage(
+            buildFactExtractorPrompt(currentProfileSummary, batchRounds),
+          ),
+        ]);
+
+        const result = this.parseObservationJson(
+          this.extractChunkContent(response.content),
+        );
+        if (result) {
+          console.log(
+            `[画像] 会话 ${conversationId} 批次 ${startIndex / PROFILE_FACT_EXTRACTION_BATCH_ROUNDS + 1} 提取 ${result.observations.length} 条事实`,
+          );
+          allObservations.push(...result.observations);
+        } else {
+          console.log(
+            `[画像] 会话 ${conversationId} 批次 ${startIndex / PROFILE_FACT_EXTRACTION_BATCH_ROUNDS + 1} JSON 解析失败`,
+          );
+        }
+      } catch (error) {
+        console.error(
+          `Phase 1 failed for conversation ${conversationId} batch starting at round ${startIndex}:`,
+          error,
+        );
+      }
+    }
+
+    const lastRoundMaxId = this.getRoundMaxMessageId(
+      newRounds[newRounds.length - 1],
+    );
+    await this.conversationRepo.update(conversationId, {
+      profileExtractedUntilMessageId: lastRoundMaxId,
+      profileExtractedAt: new Date(),
+    });
+
+    return allObservations;
+  }
+
+  /**
+   * 合成用户画像（Phase 2）
+   * @description 将 Phase 1 提取的所有事实观察与现有画像合并，生成最终 Markdown 画像
+   * @param userId - 用户 ID
+   * @param allObservations - Phase 1 收集的全部观察
+   */
+  private async synthesizeProfile(
+    userId: number,
+    allObservations: ProfileObservation[],
+  ) {
+    if (allObservations.length === 0) {
+      console.log(`[画像] 用户 ${userId} 无新事实，跳过画像合成`);
       return;
     }
 
@@ -435,47 +544,108 @@ export class ChatService {
       ? (user.personalProfile as { content?: string }).content?.trim() || ''
       : '';
 
-    const response = await this.summaryModel.invoke([
-      new SystemMessage(PERSONAL_PROFILE_SYSTEM_PROMPT),
-      new HumanMessage(buildPersonalProfilePrompt(currentProfile, rounds)),
-    ]);
+    try {
+      const response = await this.summaryModel.invoke([
+        new SystemMessage(PROFILE_SYNTHESIZER_SYSTEM_PROMPT),
+        new HumanMessage(
+          buildProfileSynthesizerPrompt(currentProfile, allObservations),
+        ),
+      ]);
 
-    const newProfileContent = this.extractChunkContent(response.content).trim();
-    if (!newProfileContent) {
-      return;
+      const newProfileContent = this.extractChunkContent(
+        response.content,
+      ).trim();
+      if (!newProfileContent) {
+        return;
+      }
+
+      user.personalProfile = {
+        content: newProfileContent,
+        updatedAt: new Date().toISOString(),
+      };
+      await this.userRepo.save(user);
+
+      console.log(`[画像] 用户 ${userId} 画像已更新`);
+    } catch (error) {
+      console.error(
+        `Phase 2 profile synthesis failed for user ${userId}:`,
+        error,
+      );
     }
-
-    user.personalProfile = {
-      content: newProfileContent,
-      updatedAt: new Date().toISOString(),
-    };
-    await this.userRepo.save(user);
-
-    await this.conversationRepo.update(conversationId, {
-      profileExtracted: true,
-    });
   }
 
   /**
-   * 批量提取用户未处理会话的画像
-   * @description 查找用户所有未提取画像的会话，逐个串行处理
+   * 批量提取用户画像（两阶段管道入口）
+   * @description
+   * 1. Phase 1：遍历用户所有会话，从每个会话中增量提取偏好事实
+   * 2. Phase 2：将所有事实合并为最终 Markdown 画像并入库
    * @param userId - 用户 ID
    */
   private async extractProfilesForUser(userId: number) {
-    const unextractedConversations = await this.conversationRepo.find({
-      where: { userId, profileExtracted: false },
+    console.log(`[画像] 用户 ${userId} 开始画像提取`);
+
+    const conversations = await this.conversationRepo.find({
+      where: { userId },
       order: { updatedAt: 'ASC' },
     });
 
-    for (const conversation of unextractedConversations) {
+    console.log(`[画像] 用户 ${userId} 共 ${conversations.length} 个会话`);
+
+    const allObservations: ProfileObservation[] = [];
+
+    for (const conversation of conversations) {
       try {
-        await this.extractProfileFromConversation(userId, conversation.id);
+        const observations = await this.extractFactsFromConversation(
+          userId,
+          conversation.id,
+        );
+        allObservations.push(...observations);
       } catch (error) {
         console.error(
-          `Failed to extract profile from conversation ${conversation.id}:`,
+          `Failed to extract facts from conversation ${conversation.id}:`,
           error,
         );
       }
+    }
+
+    console.log(`[画像] Phase 1 完成，用户 ${userId} 共提取 ${allObservations.length} 条事实`);
+
+    await this.synthesizeProfile(userId, allObservations);
+  }
+
+  /**
+   * 解析 Phase 1 模型输出的 JSON
+   * @description 兼容模型可能包裹 markdown fences 的情况
+   * @param rawText - 模型原始输出文本
+   * @returns 解析后的事实提取结果，失败时返回 null
+   */
+  private parseObservationJson(
+    rawText: string,
+  ): ProfileFactExtractionResult | null {
+    try {
+      let jsonText = rawText.trim();
+
+      const fenceMatch = jsonText.match(
+        /```(?:json)?\s*([\s\S]*?)```/,
+      );
+      if (fenceMatch) {
+        jsonText = fenceMatch[1].trim();
+      }
+
+      const parsed = JSON.parse(jsonText);
+
+      if (
+        !parsed ||
+        typeof parsed !== 'object' ||
+        !Array.isArray(parsed.observations)
+      ) {
+        return null;
+      }
+
+      return parsed as ProfileFactExtractionResult;
+    } catch (error) {
+      console.error('Failed to parse Phase 1 observation JSON:', error);
+      return null;
     }
   }
 

@@ -20,3 +20,9 @@ export const RAW_HISTORY_RETENTION_ROUNDS = 8;
 
 /** 单次摘要合并处理的轮次数，避免一次提交过长上下文。 */
 export const SUMMARY_BATCH_ROUNDS = 10;
+
+/** Phase 1 事实提取单批处理的轮次数。 */
+export const PROFILE_FACT_EXTRACTION_BATCH_ROUNDS = 5;
+
+/** 触发画像提取的最小新增轮次数。 */
+export const PROFILE_EXTRACTION_MIN_ROUNDS = 3;

@@ -80,12 +80,24 @@ export class Conversation {
   memoryUpdatedAt: Date | null;
 
   /**
-   * 是否已提取用户画像
-   * @description 标记该会话是否已用于提取用户个人偏好画像
-   * @decorator @Column({ name: 'profile_extracted', default: false }) - 布尔列，默认 false
+   * 已提取画像到的消息 ID
+   * @description 记录该会话中已被提取进画像的最后一条消息 ID，用于增量提取
+   * @decorator @Column({ name: 'profile_extracted_until_message_id', type: 'int', nullable: true }) - 整数列，可为空
    */
-  @Column({ name: 'profile_extracted', default: false })
-  profileExtracted: boolean;
+  @Column({
+    name: 'profile_extracted_until_message_id',
+    type: 'int',
+    nullable: true,
+  })
+  profileExtractedUntilMessageId: number | null;
+
+  /**
+   * 画像提取时间
+   * @description 上次从该会话提取用户画像的时间
+   * @decorator @Column({ name: 'profile_extracted_at', type: 'datetime', nullable: true }) - 日期时间列，可为空
+   */
+  @Column({ name: 'profile_extracted_at', type: 'datetime', nullable: true })
+  profileExtractedAt: Date | null;
 
   /**
    * 创建时间
