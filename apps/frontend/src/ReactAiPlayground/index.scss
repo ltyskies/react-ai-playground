@@ -1,9 +1,58 @@
-.light {
-    --text: #444;
-    --bg: #fff;
+.tech-theme {
+    // 基础色
+    --bg: #0a0e17;
+    --bg-secondary: #0d1117;
+    --bg-tertiary: #151d2e;
+    --bg-hover: #1a2332;
+    --text: #e0e6f0;
+    --text-secondary: #8892a4;
+    --text-muted: #5c6678;
+
+    // 强调色
+    --accent-primary: #00d4ff;
+    --accent-primary-dim: rgba(0, 212, 255, 0.12);
+    --accent-secondary: #a855f7;
+    --accent-success: #00e676;
+    --accent-danger: #ff4473;
+    --accent-warning: #ffaa00;
+
+    // 边框
+    --border: #1e2d4a;
+    --border-light: #2a3a5c;
+
+    // 发光
+    --glow-primary: 0 0 12px rgba(0, 212, 255, 0.2);
+    --glow-success: 0 0 12px rgba(0, 230, 118, 0.2);
+
+    // 全局背景
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+    // Allotment 分割条暗色覆盖
+    :global {
+        .split-view-view {
+            --split-view-sash-bg: var(--border);
+            --split-view-sash-hover-bg: #00d4ff;
+        }
+
+        // 滚动条全局暗色
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-light);
+            border-radius: 3px;
+
+            &:hover {
+                background: #3a4e6e;
+            }
+        }
+    }
 }
-  
-.dark {
-    --text: #fff;
-    --bg: #1a1a1a;
-} 
