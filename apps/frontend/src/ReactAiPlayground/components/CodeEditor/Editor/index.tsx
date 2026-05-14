@@ -84,6 +84,7 @@ export default function Editor(props: Props) {
             onMount={handleEditorMount}
             onChange={onChange}
             value={file.value}
+            theme={'vs-dark'}
             options={{
                 // 字体大小
                 fontSize: 14,

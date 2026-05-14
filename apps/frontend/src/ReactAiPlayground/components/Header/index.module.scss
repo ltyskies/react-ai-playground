@@ -2,8 +2,8 @@
   height: 50px;
   padding: 0 20px;
   box-sizing: border-box;
-  border-bottom: 1px solid #000;
-  background-color: var(--bg);
+  border-bottom: 1px solid var(--border);
+  background-color: var(--bg-secondary);
   color: var(--text);
   display: flex;
   align-items: center;
@@ -14,17 +14,26 @@
   display: flex;
   align-items: center;
   font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 
   img {
     height: 24px;
     margin-right: 10px;
+  }
+
+  span:first-of-type {
+    background: linear-gradient(135deg, #00d4ff 0%, #a855f7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }
 
 .aiButton {
   cursor: pointer;
   font-weight: 500;
-  color: inherit;
+  color: var(--text-secondary);
   padding: 2px 8px;
   border-radius: 4px;
   margin-left: 50px;
@@ -35,8 +44,9 @@
 }
 
 .active {
-  color: #1677ff;
-  background: rgba(22, 119, 255, 0.08);
+  color: #00d4ff;
+  background: rgba(0, 212, 255, 0.1);
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.15);
 }
 
 .links {
@@ -51,40 +61,41 @@
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: inherit;
+  color: var(--text-secondary);
   font-size: 18px;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
-    background: #f5f5f5;
-    color: #1677ff;
+    background: var(--bg-hover);
+    color: #00d4ff;
+    box-shadow: 0 0 8px rgba(0, 212, 255, 0.15);
   }
 
   &:disabled {
     cursor: not-allowed;
-    opacity: 0.5;
+    opacity: 0.4;
   }
 }
 
 .labelButton {
   border: none;
   background: transparent;
-  color: inherit;
+  color: var(--text-secondary);
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
   padding: 6px 10px;
   border-radius: 8px;
-  transition: background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 
   &:hover {
-    background: #f5f5f5;
-    color: #1677ff;
+    background: var(--bg-hover);
+    color: #00d4ff;
   }
 
   &:disabled {
     cursor: not-allowed;
-    opacity: 0.5;
+    opacity: 0.4;
   }
 }
