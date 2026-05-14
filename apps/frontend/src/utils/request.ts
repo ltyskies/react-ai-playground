@@ -25,7 +25,7 @@ export const handleUnauthorized = () => {
  * API 基础 URL
  * 后端服务地址
  */
-export const apiBaseUrl = 'http://localhost:3000'
+export const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
 
 /**
  * 创建 Axios 实例
