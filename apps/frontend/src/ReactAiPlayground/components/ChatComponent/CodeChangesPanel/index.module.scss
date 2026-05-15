@@ -1,9 +1,11 @@
+// index.module.scss
+
 .panelContainer {
     display: flex;
     flex-direction: column;
     height: 100%;
     min-width: 0;
-    background: var(--bg);
+    background: #fff;
     overflow: hidden;
 }
 
@@ -13,8 +15,8 @@
     align-items: center;
     min-height: 68px;
     padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg-secondary);
+    border-bottom: 1px solid #f0f0f0;
+    background: #fff;
     gap: 12px;
     flex-shrink: 0;
 
@@ -27,14 +29,13 @@
         font-size: 18px;
         line-height: 1.2;
         font-weight: 600;
-        color: var(--text);
+        color: #333;
     }
 
     .badge {
         padding: 3px 10px;
-        background: rgba(0, 212, 255, 0.1);
-        color: #00d4ff;
-        border: 1px solid rgba(0, 212, 255, 0.2);
+        background: #eef6ff;
+        color: #1677ff;
         border-radius: 999px;
         font-size: 12px;
         font-weight: 600;
@@ -47,18 +48,18 @@
         justify-content: center;
         width: 36px;
         height: 36px;
-        border: 1px solid var(--border-light);
-        background: var(--bg-tertiary);
+        border: 1px solid #e5e7eb;
+        background: #fff;
         border-radius: 10px;
         cursor: pointer;
-        color: var(--text-secondary);
+        color: #666;
         transition: all 0.2s;
         flex-shrink: 0;
 
         &:hover {
-            background: var(--bg-hover);
-            border-color: #00d4ff;
-            color: #00d4ff;
+            background: #f7f7f7;
+            border-color: #d8d8d8;
+            color: #333;
         }
     }
 }
@@ -68,8 +69,8 @@
     flex-wrap: wrap;
     gap: 10px;
     padding: 12px 20px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg-secondary);
+    border-bottom: 1px solid #f0f0f0;
+    background: #fff;
     flex-shrink: 0;
 
     button {
@@ -87,23 +88,22 @@
     }
 
     .batchApplyBtn {
-        background: #00e676;
-        color: #0a0e17;
+        background: #10a37f;
+        color: #fff;
 
         &:hover {
-            background: #00cc6a;
-            box-shadow: 0 0 12px rgba(0, 230, 118, 0.3);
+            background: #0f8d6e;
         }
     }
 
     .batchRevertBtn {
-        background: rgba(255, 170, 0, 0.1);
-        color: #ffaa00;
-        border-color: rgba(255, 170, 0, 0.3);
+        background: #fff7e8;
+        color: #ad6800;
+        border-color: #ffd591;
 
         &:hover {
-            background: rgba(255, 170, 0, 0.15);
-            border-color: #ffaa00;
+            background: #fff1db;
+            border-color: #ffc069;
         }
     }
 }
@@ -118,9 +118,9 @@
 }
 
 .changeGroup {
-    border: 1px solid var(--border);
+    border: 1px solid #e6e8eb;
     border-radius: 14px;
-    background: var(--bg-tertiary);
+    background: linear-gradient(180deg, #fafcff 0%, #ffffff 100%);
 }
 
 .groupItems {
@@ -132,23 +132,23 @@
 
 .changeItem {
     margin-bottom: 0;
-    border: 1px solid var(--border);
+    border: 1px solid #e6e8eb;
     border-radius: 12px;
     overflow: hidden;
-    background: var(--bg-secondary);
+    background: #fff;
     transition: all 0.2s;
 
     &:hover {
-        border-color: var(--border-light);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        border-color: #d6d9de;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
     }
 
     &.applied {
-        border-color: rgba(0, 230, 118, 0.3);
-        background: rgba(0, 230, 118, 0.04);
+        border-color: #b7ebd8;
+        background: #f8fffb;
 
         .changeHeader {
-            background: rgba(0, 230, 118, 0.06);
+            background: #f3fcf8;
         }
     }
 }
@@ -159,19 +159,19 @@
     align-items: center;
     gap: 12px;
     padding: 12px 14px;
-    background: var(--bg-tertiary);
+    background: #fafafa;
     cursor: pointer;
     transition: background 0.2s;
 
     &:hover {
-        background: var(--bg-hover);
+        background: #f5f5f5;
     }
 
     .headerLeft {
         display: flex;
         align-items: center;
         gap: 8px;
-        color: var(--text);
+        color: #333;
         min-width: 0;
         flex: 1;
 
@@ -192,11 +192,11 @@
             flex-shrink: 0;
 
             .added {
-                color: #00e676;
+                color: #10a37f;
             }
 
             .removed {
-                color: #ff4473;
+                color: #f44336;
             }
         }
     }
@@ -219,21 +219,20 @@
         transition: all 0.2s;
 
         &.applyBtn {
-            background: #00e676;
-            color: #0a0e17;
+            background: #10a37f;
+            color: #fff;
 
             &:hover {
-                background: #00cc6a;
-                box-shadow: 0 0 8px rgba(0, 230, 118, 0.3);
+                background: #0f8d6e;
             }
         }
 
         &.revertBtn {
-            background: #ffaa00;
-            color: #0a0e17;
+            background: #ff9800;
+            color: #fff;
 
             &:hover {
-                background: #e69900;
+                background: #f57c00;
             }
         }
     }
@@ -241,7 +240,7 @@
 
 .diffContent {
     padding: 12px;
-    background: var(--bg);
+    background: #fafafa;
     font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
     font-size: 12px;
     line-height: 1.5;
@@ -255,7 +254,7 @@
     }
 
     &::-webkit-scrollbar-thumb {
-        background: var(--border-light);
+        background: #c7ced9;
         border-radius: 999px;
     }
 }
@@ -276,27 +275,27 @@
     }
 
     &.lineAdded {
-        background: rgba(0, 230, 118, 0.1);
-        color: #69f0ae;
+        background: #e8f5e9;
+        color: #2e7d32;
 
         .linePrefix {
-            color: #00e676;
+            color: #4caf50;
             font-weight: bold;
         }
     }
 
     &.lineRemoved {
-        background: rgba(255, 68, 115, 0.1);
-        color: #ff80ab;
+        background: #ffebee;
+        color: #c62828;
 
         .linePrefix {
-            color: #ff4473;
+            color: #f44336;
             font-weight: bold;
         }
     }
 
     &.lineUnchanged {
-        color: var(--text-muted);
+        color: #666;
     }
 }
 
@@ -307,18 +306,18 @@
     justify-content: center;
     flex: 1;
     padding: 40px 20px;
-    color: var(--text-muted);
+    color: #999;
     text-align: center;
 
     svg {
         margin-bottom: 16px;
-        opacity: 0.4;
+        opacity: 0.5;
     }
 
     p {
         margin: 0 0 8px;
         font-size: 14px;
-        color: var(--text-secondary);
+        color: #666;
     }
 
     span {

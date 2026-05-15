@@ -4,26 +4,6 @@
   height: 100%;
   background: #fff;
   overflow: hidden;
-
-  // 聊天区域浅色主题变量覆盖
-  --bg: #fff;
-  --bg-secondary: #f8f9fa;
-  --bg-tertiary: #f0f2f5;
-  --bg-hover: #e4e6e9;
-  --text: #1a1a2e;
-  --text-secondary: #5f6368;
-  --text-muted: #9aa0a6;
-  --border: #e0e0e0;
-  --border-light: #eee;
-  --chat-bg: #fff;
-  --chat-bg-secondary: #f8f9fa;
-  --chat-bg-tertiary: #f0f2f5;
-  --chat-bg-hover: #e4e6e9;
-  --chat-text: #1a1a2e;
-  --chat-text-secondary: #5f6368;
-  --chat-text-muted: #9aa0a6;
-  --chat-border: #e0e0e0;
-  --chat-border-light: #eee;
 }
 
 .chatContainer {
@@ -32,7 +12,7 @@
   height: 100%;
   flex: 1;
   min-width: 0;
-  background: var(--chat-bg, #fff);
+  background: #fff;
   overflow: hidden;
   position: relative;
   box-sizing: border-box;
@@ -45,8 +25,8 @@
 .chatHeader {
   min-height: 68px;
   padding: 16px 20px;
-  background: var(--chat-bg-secondary);
-  border-bottom: 1px solid var(--chat-border);
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
   flex-shrink: 0;
   display: flex;
   justify-content: space-between;
@@ -59,7 +39,7 @@
   font-size: 18px;
   line-height: 1.2;
   font-weight: 600;
-  color: var(--chat-text);
+  color: #333;
 }
 
 // 代码变更面板入口按钮
@@ -69,33 +49,31 @@
   justify-content: center;
   width: 36px;
   height: 36px;
-  border: 1px solid var(--chat-border-light);
-  background: var(--chat-bg-tertiary);
+  border: 1px solid #e5e7eb;
+  background: #fff;
   border-radius: 10px;
   cursor: pointer;
-  color: var(--chat-text-secondary);
+  color: #666;
   transition: all 0.2s;
   position: relative;
   flex-shrink: 0;
 }
 
 .changesBtn:hover {
-  background: var(--chat-bg-hover);
-  border-color: #00d4ff;
-  color: #00d4ff;
-  box-shadow: 0 0 8px rgba(0, 212, 255, 0.15);
+  background: #f7f7f7;
+  border-color: #d8d8d8;
+  color: #333;
 }
 
 .changesBtn.hasChanges {
-  color: #00e676;
-  border-color: rgba(0, 230, 118, 0.4);
-  background: rgba(0, 230, 118, 0.08);
+  color: #10a37f;
+  border-color: #b7ebd8;
+  background: #f6fffb;
 }
 
 .changesBtn.hasChanges:hover {
-  background: rgba(0, 230, 118, 0.12);
-  border-color: #00e676;
-  box-shadow: 0 0 8px rgba(0, 230, 118, 0.2);
+  background: #edfdf7;
+  border-color: #8fd8bf;
 }
 
 .changesBadge {
@@ -105,8 +83,8 @@
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
-  background: #ff4473;
-  border: 2px solid var(--chat-bg-secondary);
+  background: #ff4d4f;
+  border: 2px solid #fff;
   color: #fff;
   font-size: 10px;
   font-weight: 600;
@@ -135,16 +113,14 @@
     &.user {
       flex-direction: row-reverse;
       .messageBubble {
-        background: rgba(0, 212, 255, 0.12);
-        border: 1px solid rgba(0, 212, 255, 0.2);
+        background: #e6f4ff;
         border-radius: 12px 0 12px 12px;
       }
     }
 
     &.assistant {
       .messageBubble {
-        background: var(--chat-bg-tertiary);
-        border: 1px solid var(--chat-border);
+        background: #f9f9f9;
         border-radius: 0 12px 12px 12px;
       }
     }
@@ -158,8 +134,8 @@
       justify-content: center;
       flex-shrink: 0;
 
-      &.userAvatar { background: linear-gradient(135deg, #00d4ff, #0099cc); color: #fff; }
-      &.assistantAvatar { background: linear-gradient(135deg, #00e676, #00b248); color: #fff; }
+      &.userAvatar { background: #1677ff; color: #fff; }
+      &.assistantAvatar { background: #10a37f; color: #fff; }
     }
 
     .messageBubble {
@@ -167,14 +143,14 @@
       padding: 10px 14px;
       font-size: 15px;
       line-height: 1.6;
-      color: var(--chat-text);
+      color: #333;
       overflow-wrap: break-word;
 
       .typingCursor {
         display: inline-block;
         width: 6px;
         height: 16px;
-        background: #00d4ff;
+        background: #333;
         margin-left: 4px;
         vertical-align: middle;
         animation: blink 1s infinite;
@@ -186,8 +162,8 @@
 // 输入区与上下文文件选择
 .inputArea {
   padding: 16px 20px 24px;
-  background: var(--chat-bg-secondary);
-  border-top: 1px solid var(--chat-border);
+  background: #fff;
+  border-top: 1px solid #f0f0f0;
   flex-shrink: 0;
   z-index: 10;
 
@@ -202,18 +178,18 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      background: rgba(0, 212, 255, 0.08);
-      border: 1px solid rgba(0, 212, 255, 0.25);
-      color: #00d4ff;
+      background: #f0f7ff;
+      border: 1px solid #bae0ff;
+      color: #0958d9;
       padding: 4px 10px;
       border-radius: 6px;
       font-size: 13px;
 
       .fileName { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .removeBtn {
-        background: transparent; border: none; cursor: pointer; color: var(--chat-text-muted);
+        background: transparent; border: none; cursor: pointer; color: #999;
         display: flex; align-items: center; padding: 0;
-        &:hover { color: #ff4473; }
+        &:hover { color: #ff4d4f; }
       }
     }
 
@@ -224,32 +200,32 @@
         display: flex;
         align-items: center;
         gap: 4px;
-        background: var(--chat-bg-tertiary);
-        border: 1px dashed var(--chat-border-light);
+        background: #fff;
+        border: 1px dashed #d9d9d9;
         padding: 4px 12px;
         border-radius: 6px;
         font-size: 13px;
-        color: var(--chat-text-secondary);
+        color: #666;
         cursor: pointer;
         transition: all 0.2s;
-        &:hover { border-color: #00e676; color: #00e676; background: rgba(0, 230, 118, 0.06); }
+        &:hover { border-color: #10a37f; color: #10a37f; background: #f6ffed; }
       }
 
       .filePickerDropdown {
         position: absolute;
         bottom: calc(100% + 10px);
         left: 0;
-        background: var(--chat-bg-tertiary);
-        border: 1px solid var(--chat-border-light);
+        background: #fff;
+        border: 1px solid #e5e5e5;
         border-radius: 8px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
         z-index: 1000;
         min-width: 200px;
         padding: 6px;
         max-height: 300px;
         overflow-y: auto;
 
-        .dropdownHeader { font-size: 11px; color: var(--chat-text-muted); padding: 4px 10px; }
+        .dropdownHeader { font-size: 11px; color: #999; padding: 4px 10px; }
         .dropdownItem {
           display: flex;
           align-items: center;
@@ -258,9 +234,8 @@
           font-size: 14px;
           cursor: pointer;
           border-radius: 6px;
-          color: var(--chat-text);
-          &:hover { background: var(--chat-bg-hover); }
-          &.selected { color: var(--chat-text-muted); cursor: not-allowed; }
+          &:hover { background: #f5f5f5; }
+          &.selected { color: #bfbfbf; cursor: not-allowed; }
         }
       }
     }
@@ -268,15 +243,15 @@
 
   .inputWrapper {
     position: relative;
-    background: var(--chat-bg-tertiary);
-    border: 1px solid var(--chat-border-light);
+    background: #f4f4f4;
+    border: 1px solid #e5e5e5;
     border-radius: 12px;
     padding: 10px;
     display: flex;
     align-items: flex-end;
     transition: all 0.2s;
 
-    &:focus-within { background: var(--chat-bg-tertiary); border-color: #00e676; box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.12); }
+    &:focus-within { background: #fff; border-color: #10a37f; box-shadow: 0 0 0 2px rgba(16, 163, 127, 0.1); }
 
     textarea {
       flex: 1;
@@ -286,9 +261,6 @@
       resize: none;
       max-height: 150px;
       overflow-y: auto;
-      color: var(--chat-text);
-
-      &::placeholder { color: var(--chat-text-muted); }
     }
 
     .buttonGroup {
@@ -297,10 +269,10 @@
         width: 32px; height: 32px; border-radius: 8px; border: none;
         display: flex; align-items: center; justify-content: center;
         cursor: pointer;
-        transition: all 0.2s;
-        &.sendBtn { background: #00e676; color: #0a0e17; &:disabled { background: var(--chat-bg-hover); color: var(--chat-text-muted); cursor: default; } }
-        &.stopBtn { background: #ff4473; color: #fff; }
-        &:hover:not(:disabled) { opacity: 0.85; box-shadow: 0 0 10px rgba(0, 230, 118, 0.3); }
+        transition: background 0.2s;
+        &.sendBtn { background: #10a37f; color: #fff; &:disabled { background: #e5e5e5; color: #acacac; cursor: default; } }
+        &.stopBtn { background: #000; color: #fff; }
+        &:hover:not(:disabled) { opacity: 0.9; }
       }
     }
   }

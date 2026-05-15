@@ -1,27 +1,31 @@
+// index.module.scss
+
 .chatSkeleton {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: var(--bg);
-  border-left: 1px solid var(--border);
+  background-color: #ffffff;
+  border-left: 1px solid #e5e5e5; 
   position: relative;
   overflow: hidden;
 
+  // 1. 聊天头部 
   .chatHeaderSkeleton {
     height: 60px;
     display: flex;
     align-items: center;
     padding: 0 15px;
-    background-color: var(--bg-secondary);
-    border-bottom: 1px solid var(--border);
-
+    background-color: #fafafa;
+    border-bottom: 1px solid #e5e5e5;
+    
     span {
       font-size: 18px;
       font-weight: 500;
-      color: var(--text);
+      color: black;
     }
   }
 
+  // 这里的消息区域占位，确保样式名称对应
   .messagesViewportSkeleton {
     flex: 1;
   }

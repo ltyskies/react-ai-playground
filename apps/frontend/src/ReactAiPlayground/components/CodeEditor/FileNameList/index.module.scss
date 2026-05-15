@@ -6,22 +6,22 @@
     height: 38px;
     overflow-x: auto;
     overflow-y: hidden;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid #ddd;
     box-sizing: border-box;
 
     color: var(--text);
-    background-color: var(--bg-secondary);
+    background-color: var(--bg);
 
     &::-webkit-scrollbar {
     height: 1px;
     }
 
     &::-webkit-scrollbar-track {
-        background-color: var(--border);
+        background-color: #ddd;
     }
 
     &::-webkit-scrollbar-thumb {
-        background-color: var(--border-light);
+        background-color: #ddd;
     }
 
     .tab-item {
@@ -32,12 +32,10 @@
         cursor: pointer;
         align-items: center;
         border-bottom: 3px solid transparent;
-        color: var(--text-secondary);
-        transition: color 0.2s, border-color 0.2s;
 
         &.actived {
-            color: #00d4ff;
-            border-bottom: 3px solid #00d4ff;
+            color: skyblue;
+            border-bottom: 3px solid skyblue;
         }
 
         &:first-child {
@@ -51,13 +49,9 @@
     padding: 4px 0 4px 10px;
     font-size: 13px;
 
-    color: var(--text);
-    background-color: var(--bg-tertiary);
-    border: 1px solid var(--border-light);
+    color: #444;
+    background-color: #ddd;
+    border: 1px solid #ddd;
     border-radius: 4px;
     outline: none;
-
-    &:focus {
-        border-color: #00d4ff;
-    }
 }
