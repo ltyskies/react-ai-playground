@@ -2,8 +2,28 @@
 
 .chatLayout {
   height: 100%;
-  background: var(--bg);
+  background: #fff;
   overflow: hidden;
+
+  // 聊天区域浅色主题变量覆盖
+  --bg: #fff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #f0f2f5;
+  --bg-hover: #e4e6e9;
+  --text: #1a1a2e;
+  --text-secondary: #5f6368;
+  --text-muted: #9aa0a6;
+  --border: #e0e0e0;
+  --border-light: #eee;
+  --chat-bg: #fff;
+  --chat-bg-secondary: #f8f9fa;
+  --chat-bg-tertiary: #f0f2f5;
+  --chat-bg-hover: #e4e6e9;
+  --chat-text: #1a1a2e;
+  --chat-text-secondary: #5f6368;
+  --chat-text-muted: #9aa0a6;
+  --chat-border: #e0e0e0;
+  --chat-border-light: #eee;
 }
 
 .chatContainer {
@@ -12,7 +32,7 @@
   height: 100%;
   flex: 1;
   min-width: 0;
-  background: var(--bg);
+  background: var(--chat-bg, #fff);
   overflow: hidden;
   position: relative;
   box-sizing: border-box;
@@ -25,8 +45,8 @@
 .chatHeader {
   min-height: 68px;
   padding: 16px 20px;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border);
+  background: var(--chat-bg-secondary);
+  border-bottom: 1px solid var(--chat-border);
   flex-shrink: 0;
   display: flex;
   justify-content: space-between;
@@ -39,7 +59,7 @@
   font-size: 18px;
   line-height: 1.2;
   font-weight: 600;
-  color: var(--text);
+  color: var(--chat-text);
 }
 
 // 代码变更面板入口按钮
@@ -49,18 +69,18 @@
   justify-content: center;
   width: 36px;
   height: 36px;
-  border: 1px solid var(--border-light);
-  background: var(--bg-tertiary);
+  border: 1px solid var(--chat-border-light);
+  background: var(--chat-bg-tertiary);
   border-radius: 10px;
   cursor: pointer;
-  color: var(--text-secondary);
+  color: var(--chat-text-secondary);
   transition: all 0.2s;
   position: relative;
   flex-shrink: 0;
 }
 
 .changesBtn:hover {
-  background: var(--bg-hover);
+  background: var(--chat-bg-hover);
   border-color: #00d4ff;
   color: #00d4ff;
   box-shadow: 0 0 8px rgba(0, 212, 255, 0.15);
@@ -86,7 +106,7 @@
   height: 18px;
   padding: 0 5px;
   background: #ff4473;
-  border: 2px solid var(--bg-secondary);
+  border: 2px solid var(--chat-bg-secondary);
   color: #fff;
   font-size: 10px;
   font-weight: 600;
@@ -123,8 +143,8 @@
 
     &.assistant {
       .messageBubble {
-        background: var(--bg-tertiary);
-        border: 1px solid var(--border);
+        background: var(--chat-bg-tertiary);
+        border: 1px solid var(--chat-border);
         border-radius: 0 12px 12px 12px;
       }
     }
@@ -147,7 +167,7 @@
       padding: 10px 14px;
       font-size: 15px;
       line-height: 1.6;
-      color: var(--text);
+      color: var(--chat-text);
       overflow-wrap: break-word;
 
       .typingCursor {
@@ -166,8 +186,8 @@
 // 输入区与上下文文件选择
 .inputArea {
   padding: 16px 20px 24px;
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border);
+  background: var(--chat-bg-secondary);
+  border-top: 1px solid var(--chat-border);
   flex-shrink: 0;
   z-index: 10;
 
@@ -191,7 +211,7 @@
 
       .fileName { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .removeBtn {
-        background: transparent; border: none; cursor: pointer; color: var(--text-muted);
+        background: transparent; border: none; cursor: pointer; color: var(--chat-text-muted);
         display: flex; align-items: center; padding: 0;
         &:hover { color: #ff4473; }
       }
@@ -204,12 +224,12 @@
         display: flex;
         align-items: center;
         gap: 4px;
-        background: var(--bg-tertiary);
-        border: 1px dashed var(--border-light);
+        background: var(--chat-bg-tertiary);
+        border: 1px dashed var(--chat-border-light);
         padding: 4px 12px;
         border-radius: 6px;
         font-size: 13px;
-        color: var(--text-secondary);
+        color: var(--chat-text-secondary);
         cursor: pointer;
         transition: all 0.2s;
         &:hover { border-color: #00e676; color: #00e676; background: rgba(0, 230, 118, 0.06); }
@@ -219,8 +239,8 @@
         position: absolute;
         bottom: calc(100% + 10px);
         left: 0;
-        background: var(--bg-tertiary);
-        border: 1px solid var(--border-light);
+        background: var(--chat-bg-tertiary);
+        border: 1px solid var(--chat-border-light);
         border-radius: 8px;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
         z-index: 1000;
@@ -229,7 +249,7 @@
         max-height: 300px;
         overflow-y: auto;
 
-        .dropdownHeader { font-size: 11px; color: var(--text-muted); padding: 4px 10px; }
+        .dropdownHeader { font-size: 11px; color: var(--chat-text-muted); padding: 4px 10px; }
         .dropdownItem {
           display: flex;
           align-items: center;
@@ -238,9 +258,9 @@
           font-size: 14px;
           cursor: pointer;
           border-radius: 6px;
-          color: var(--text);
-          &:hover { background: var(--bg-hover); }
-          &.selected { color: var(--text-muted); cursor: not-allowed; }
+          color: var(--chat-text);
+          &:hover { background: var(--chat-bg-hover); }
+          &.selected { color: var(--chat-text-muted); cursor: not-allowed; }
         }
       }
     }
@@ -248,15 +268,15 @@
 
   .inputWrapper {
     position: relative;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-light);
+    background: var(--chat-bg-tertiary);
+    border: 1px solid var(--chat-border-light);
     border-radius: 12px;
     padding: 10px;
     display: flex;
     align-items: flex-end;
     transition: all 0.2s;
 
-    &:focus-within { background: var(--bg-tertiary); border-color: #00e676; box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.12); }
+    &:focus-within { background: var(--chat-bg-tertiary); border-color: #00e676; box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.12); }
 
     textarea {
       flex: 1;
@@ -266,9 +286,9 @@
       resize: none;
       max-height: 150px;
       overflow-y: auto;
-      color: var(--text);
+      color: var(--chat-text);
 
-      &::placeholder { color: var(--text-muted); }
+      &::placeholder { color: var(--chat-text-muted); }
     }
 
     .buttonGroup {
@@ -278,7 +298,7 @@
         display: flex; align-items: center; justify-content: center;
         cursor: pointer;
         transition: all 0.2s;
-        &.sendBtn { background: #00e676; color: #0a0e17; &:disabled { background: var(--bg-hover); color: var(--text-muted); cursor: default; } }
+        &.sendBtn { background: #00e676; color: #0a0e17; &:disabled { background: var(--chat-bg-hover); color: var(--chat-text-muted); cursor: default; } }
         &.stopBtn { background: #ff4473; color: #fff; }
         &:hover:not(:disabled) { opacity: 0.85; box-shadow: 0 0 10px rgba(0, 230, 118, 0.3); }
       }
