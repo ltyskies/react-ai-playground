@@ -325,7 +325,7 @@ export default function ReactAiPlayground() {
     }, [abortCurrentRequest, conversationId, flushWorkspaceSave, navigate]);
 
     return (
-        <div className="light" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <div className="tech-theme" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
             <Header
                 actionLoading={conversationActionLoading}
                 onCreateConversation={handleCreateConversation}

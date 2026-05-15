@@ -9,6 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ChatService } from './chat.service';
 import { ChatController } from './chat.controller';
 import { ConversationRuntimeMemoryService } from './conversation-runtime-memory.service';
+import { ProfileSynthesisService } from './profile-synthesis';
 import { Conversation } from './entities/conversation.entity';
 import { Message } from './entities/message.entity';
 import { User } from '../user/entities/user.entity';
@@ -24,6 +25,10 @@ import { User } from '../user/entities/user.entity';
     TypeOrmModule.forFeature([Conversation, Message, User]),
   ],
   controllers: [ChatController],
-  providers: [ChatService, ConversationRuntimeMemoryService],
+  providers: [
+    ChatService,
+    ConversationRuntimeMemoryService,
+    ProfileSynthesisService,
+  ],
 })
 export class ChatModule {}

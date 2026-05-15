@@ -33,8 +33,6 @@ import {
   CONVERSATION_SUMMARY_SYSTEM_PROMPT,
   PROFILE_FACT_EXTRACTOR_SYSTEM_PROMPT,
   buildFactExtractorPrompt,
-  PROFILE_SYNTHESIZER_SYSTEM_PROMPT,
-  buildProfileSynthesizerPrompt,
   buildPromptRulesMessage,
   buildUserPrompt,
   buildConversationSummaryPrompt,
@@ -56,6 +54,7 @@ import {
   PROFILE_EXTRACTION_MIN_ROUNDS,
 } from './config';
 import { createChatModel, createSummaryModel } from './config';
+import { ProfileSynthesisService } from './profile-synthesis';
 
 /**
  * 流式生成选项
@@ -128,6 +127,7 @@ export class ChatService {
     private userRepo: Repository<User>,
     private configService: ConfigService,
     private conversationRuntimeMemoryService: ConversationRuntimeMemoryService,
+    private profileSynthesisService: ProfileSynthesisService,
   ) {
     this.chatModel = createChatModel(this.configService);
     this.summaryModel = createSummaryModel(this.configService);
@@ -444,8 +444,7 @@ export class ChatService {
       return [];
     }
 
-    const summarizedUntilId =
-      conversation.profileExtractedUntilMessageId || 0;
+    const summarizedUntilId = conversation.profileExtractedUntilMessageId || 0;
     const newRounds = allRounds.filter(
       (round) => this.getRoundMaxMessageId(round) > summarizedUntilId,
     );
@@ -454,9 +453,7 @@ export class ChatService {
       `[画像] 会话 ${conversationId}: 总轮次 ${allRounds.length}, 新轮次 ${newRounds.length}, 已提取至消息ID ${summarizedUntilId}`,
     );
 
-    if (
-      newRounds.length < PROFILE_EXTRACTION_MIN_ROUNDS
-    ) {
+    if (newRounds.length < PROFILE_EXTRACTION_MIN_ROUNDS) {
       console.log(
         `[画像] 会话 ${conversationId} 新轮次不足 ${PROFILE_EXTRACTION_MIN_ROUNDS}，跳过`,
       );
@@ -530,42 +527,17 @@ export class ChatService {
     userId: number,
     allObservations: ProfileObservation[],
   ) {
-    if (allObservations.length === 0) {
-      console.log(`[画像] 用户 ${userId} 无新事实，跳过画像合成`);
-      return;
-    }
-
-    const user = await this.userRepo.findOne({ where: { id: userId } });
-    if (!user) {
-      return;
-    }
-
-    const currentProfile = user.personalProfile
-      ? (user.personalProfile as { content?: string }).content?.trim() || ''
-      : '';
-
     try {
-      const response = await this.summaryModel.invoke([
-        new SystemMessage(PROFILE_SYNTHESIZER_SYSTEM_PROMPT),
-        new HumanMessage(
-          buildProfileSynthesizerPrompt(currentProfile, allObservations),
-        ),
-      ]);
-
-      const newProfileContent = this.extractChunkContent(
-        response.content,
-      ).trim();
-      if (!newProfileContent) {
-        return;
+      const diff = await this.profileSynthesisService.synthesize(
+        userId,
+        allObservations,
+      );
+      if (diff) {
+        console.log(
+          `[画像] 用户 ${userId} 画像已更新 (v${diff.previousVersion} -> v${diff.version}, ` +
+            `score=${diff.finalReviewScore}, iterations=${diff.iterationsUsed})`,
+        );
       }
-
-      user.personalProfile = {
-        content: newProfileContent,
-        updatedAt: new Date().toISOString(),
-      };
-      await this.userRepo.save(user);
-
-      console.log(`[画像] 用户 ${userId} 画像已更新`);
     } catch (error) {
       console.error(
         `Phase 2 profile synthesis failed for user ${userId}:`,
@@ -608,7 +580,9 @@ export class ChatService {
       }
     }
 
-    console.log(`[画像] Phase 1 完成，用户 ${userId} 共提取 ${allObservations.length} 条事实`);
+    console.log(
+      `[画像] Phase 1 完成，用户 ${userId} 共提取 ${allObservations.length} 条事实`,
+    );
 
     await this.synthesizeProfile(userId, allObservations);
   }
@@ -625,9 +599,7 @@ export class ChatService {
     try {
       let jsonText = rawText.trim();
 
-      const fenceMatch = jsonText.match(
-        /```(?:json)?\s*([\s\S]*?)```/,
-      );
+      const fenceMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)```/);
       if (fenceMatch) {
         jsonText = fenceMatch[1].trim();
       }
