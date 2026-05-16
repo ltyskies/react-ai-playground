@@ -53,46 +53,6 @@ pnpm dev
 - 后端：http://localhost:3000
 - Swagger 文档：http://localhost:3000/api
 
-## 项目结构 / Project Structure
-
-```
-react-ai-playground/
-├── apps/
-│   ├── frontend/                    # React 19 + Vite 7 前端
-│   │   └── src/
-│   │       ├── main.tsx             # 应用入口
-│   │       ├── router/              # 路由配置
-│   │       ├── components/          # 共享组件（AuthRoute 等）
-│   │       ├── apis/                # API 请求封装
-│   │       ├── store/               # Zustand 状态（chatStore, userStore）
-│   │       ├── utils/               # 工具函数（request, token）
-│   │       ├── login/               # 登录页
-│   │       └── ReactAiPlayground/   # 核心 AI 编程工作台
-│   │           ├── AIPlaygroundContext.tsx  # 文件工作区上下文
-│   │           ├── files.ts                 # 初始模板文件
-│   │           └── components/
-│   │               ├── ChatComponent/  # AI 聊天面板（流式 SSE、代码提取）
-│   │               ├── CodeEditor/     # Monaco 编辑器 + 文件标签
-│   │               ├── Preview/        # 浏览器内编译预览
-│   │               └── Header/         # 顶部导航栏
-│   │
-│   └── backend/                     # NestJS 11 后端
-│       └── src/
-│           ├── main.ts              # 应用启动入口
-│           ├── config/              # 配置中心
-│           ├── common/              # 通用模块（Result, filter）
-│           ├── auth/                # 认证模块（JWT + Passport）
-│           ├── user/                # 用户模块（登录、提示规则）
-│           └── chat/                # 聊天模块（SSE 流式、会话管理、Prompt 构建）
-│               ├── entities/        # 会话、消息实体
-│               ├── prompts/         # AI Prompt 模板
-│               ├── config/          # LangChain 模型配置
-│               └── profile-synthesis/  # 用户画像合成
-│
-├── package.json                     # 根工作区脚本
-├── pnpm-workspace.yaml             # pnpm 工作区配置
-└── CLAUDE.md                        # AI 协作规则
-```
 
 ## 功能特性 / Features
 
