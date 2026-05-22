@@ -2,7 +2,7 @@
 
 .chatLayout {
   height: 100%;
-  background: #fff;
+  background: var(--color-bg-base);
   overflow: hidden;
 }
 
@@ -12,7 +12,7 @@
   height: 100%;
   flex: 1;
   min-width: 0;
-  background: #fff;
+  background: var(--color-bg-base);
   overflow: hidden;
   position: relative;
   box-sizing: border-box;
@@ -25,8 +25,8 @@
 .chatHeader {
   min-height: 68px;
   padding: 16px 20px;
-  background: #fff;
-  border-bottom: 1px solid #f0f0f0;
+  background: var(--color-bg-base);
+  border-bottom: 1px solid var(--color-border-secondary);
   flex-shrink: 0;
   display: flex;
   justify-content: space-between;
@@ -39,7 +39,7 @@
   font-size: 18px;
   line-height: 1.2;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 // 代码变更面板入口按钮
@@ -49,31 +49,31 @@
   justify-content: center;
   width: 36px;
   height: 36px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-base);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  color: #666;
-  transition: all 0.2s;
+  color: var(--color-text-secondary);
+  transition: all var(--transition-base);
   position: relative;
   flex-shrink: 0;
 }
 
 .changesBtn:hover {
-  background: #f7f7f7;
-  border-color: #d8d8d8;
-  color: #333;
+  background: var(--color-bg-layout);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
 }
 
 .changesBtn.hasChanges {
-  color: #10a37f;
-  border-color: #b7ebd8;
-  background: #f6fffb;
+  color: var(--color-success);
+  border-color: var(--color-success-bg);
+  background: var(--color-success-bg);
 }
 
 .changesBtn.hasChanges:hover {
-  background: #edfdf7;
-  border-color: #8fd8bf;
+  background: var(--color-success-bg);
+  border-color: var(--color-success);
 }
 
 .changesBadge {
@@ -83,8 +83,8 @@
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
-  background: #ff4d4f;
-  border: 2px solid #fff;
+  background: var(--color-error);
+  border: 2px solid var(--color-bg-base);
   color: #fff;
   font-size: 10px;
   font-weight: 600;
@@ -104,66 +104,13 @@
   .vlistContainer {
     height: 100%;
   }
-
-  .messageItem {
-    display: flex;
-    gap: 12px;
-    padding: 16px 20px;
-
-    &.user {
-      flex-direction: row-reverse;
-      .messageBubble {
-        background: #e6f4ff;
-        border-radius: 12px 0 12px 12px;
-      }
-    }
-
-    &.assistant {
-      .messageBubble {
-        background: #f9f9f9;
-        border-radius: 0 12px 12px 12px;
-      }
-    }
-
-    .avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-
-      &.userAvatar { background: #1677ff; color: #fff; }
-      &.assistantAvatar { background: #10a37f; color: #fff; }
-    }
-
-    .messageBubble {
-      max-width: 85%;
-      padding: 10px 14px;
-      font-size: 15px;
-      line-height: 1.6;
-      color: #333;
-      overflow-wrap: break-word;
-
-      .typingCursor {
-        display: inline-block;
-        width: 6px;
-        height: 16px;
-        background: #333;
-        margin-left: 4px;
-        vertical-align: middle;
-        animation: blink 1s infinite;
-      }
-    }
-  }
 }
 
 // 输入区与上下文文件选择
 .inputArea {
   padding: 16px 20px 24px;
-  background: #fff;
-  border-top: 1px solid #f0f0f0;
+  background: var(--color-bg-base);
+  border-top: 1px solid var(--color-border-secondary);
   flex-shrink: 0;
   z-index: 10;
 
@@ -178,18 +125,18 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      background: #f0f7ff;
+      background: var(--color-primary-bg);
       border: 1px solid #bae0ff;
-      color: #0958d9;
+      color: var(--color-primary-active);
       padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 13px;
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-sm);
 
       .fileName { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .removeBtn {
-        background: transparent; border: none; cursor: pointer; color: #999;
+        background: transparent; border: none; cursor: pointer; color: var(--color-text-tertiary);
         display: flex; align-items: center; padding: 0;
-        &:hover { color: #ff4d4f; }
+        &:hover { color: var(--color-error); }
       }
     }
 
@@ -200,42 +147,42 @@
         display: flex;
         align-items: center;
         gap: 4px;
-        background: #fff;
-        border: 1px dashed #d9d9d9;
+        background: var(--color-bg-base);
+        border: 1px dashed var(--color-border);
         padding: 4px 12px;
-        border-radius: 6px;
-        font-size: 13px;
-        color: #666;
+        border-radius: var(--radius-sm);
+        font-size: var(--font-size-sm);
+        color: var(--color-text-secondary);
         cursor: pointer;
-        transition: all 0.2s;
-        &:hover { border-color: #10a37f; color: #10a37f; background: #f6ffed; }
+        transition: all var(--transition-base);
+        &:hover { border-color: var(--color-success); color: var(--color-success); background: var(--color-success-bg); }
       }
 
       .filePickerDropdown {
         position: absolute;
         bottom: calc(100% + 10px);
         left: 0;
-        background: #fff;
-        border: 1px solid #e5e5e5;
-        border-radius: 8px;
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        background: var(--color-bg-base);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
         z-index: 1000;
         min-width: 200px;
         padding: 6px;
         max-height: 300px;
         overflow-y: auto;
 
-        .dropdownHeader { font-size: 11px; color: #999; padding: 4px 10px; }
+        .dropdownHeader { font-size: 11px; color: var(--color-text-tertiary); padding: 4px 10px; }
         .dropdownItem {
           display: flex;
           align-items: center;
           gap: 10px;
           padding: 8px 10px;
-          font-size: 14px;
+          font-size: var(--font-size-base);
           cursor: pointer;
-          border-radius: 6px;
-          &:hover { background: #f5f5f5; }
-          &.selected { color: #bfbfbf; cursor: not-allowed; }
+          border-radius: var(--radius-sm);
+          &:hover { background: var(--color-bg-layout); }
+          &.selected { color: var(--color-text-quaternary); cursor: not-allowed; }
         }
       }
     }
@@ -243,35 +190,39 @@
 
   .inputWrapper {
     position: relative;
-    background: #f4f4f4;
-    border: 1px solid #e5e5e5;
-    border-radius: 12px;
+    background: var(--color-bg-layout);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
     padding: 10px;
     display: flex;
-    align-items: flex-end;
-    transition: all 0.2s;
+    align-items: center;
+    transition: all var(--transition-base);
 
-    &:focus-within { background: #fff; border-color: #10a37f; box-shadow: 0 0 0 2px rgba(16, 163, 127, 0.1); }
+    &:focus-within { background: var(--color-bg-base); border-color: var(--color-success); box-shadow: 0 0 0 2px rgba(16, 163, 127, 0.1); }
 
     textarea {
       flex: 1;
       border: none; outline: none; background: transparent;
-      padding: 0 40px 0 8px;
+      padding: 0 8px;
       font-size: 15px; line-height: 1.5;
       resize: none;
       max-height: 150px;
       overflow-y: auto;
+      color: var(--color-text-primary);
     }
 
     .buttonGroup {
-      position: absolute; right: 10px; bottom: 8px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      margin-left: 4px;
       .actionButton {
-        width: 32px; height: 32px; border-radius: 8px; border: none;
+        width: 32px; height: 32px; border-radius: var(--radius-md); border: none;
         display: flex; align-items: center; justify-content: center;
         cursor: pointer;
-        transition: background 0.2s;
-        &.sendBtn { background: #10a37f; color: #fff; &:disabled { background: #e5e5e5; color: #acacac; cursor: default; } }
-        &.stopBtn { background: #000; color: #fff; }
+        transition: background var(--transition-base);
+        &.sendBtn { background: var(--color-success); color: #fff; &:disabled { background: var(--color-border); color: #acacac; cursor: default; } }
+        &.stopBtn { background: var(--color-text-primary); color: #fff; }
         &:hover:not(:disabled) { opacity: 0.9; }
       }
     }

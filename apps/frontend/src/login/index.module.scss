@@ -1,17 +1,9 @@
-// index.module.scss
-
-// 定义颜色变量
-$primary-color: #1677ff;
-$bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-$text-secondary: #8c8c8c;
-
 .loginPage {
   height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: $bg-gradient;
-  background-size: cover;
+  background: var(--color-bg-layout);
 
   .loginOverlay {
     width: 100%;
@@ -21,9 +13,8 @@ $text-secondary: #8c8c8c;
 
   .loginCard {
     width: 400px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-    border-radius: 12px;
-    padding: 20px 10px;
+    box-shadow: var(--shadow-lg);
+    border-radius: var(--radius-lg);
 
     .loginHeader {
       text-align: center;
@@ -32,18 +23,17 @@ $text-secondary: #8c8c8c;
       .loginTitle {
         font-size: 28px;
         font-weight: 700;
-        color: #1a1a1a;
+        color: var(--color-text-primary);
         margin-bottom: 8px;
         letter-spacing: -0.5px;
       }
 
       .loginSubtitle {
-        color: $text-secondary;
-        font-size: 14px;
+        color: var(--color-text-tertiary);
+        font-size: var(--font-size-base);
       }
     }
 
-    // 使用 :global 覆盖 Antd 内部类名样式
     :global {
       .ant-form-item-label {
         font-weight: 500;
@@ -52,11 +42,11 @@ $text-secondary: #8c8c8c;
 
     .loginButton {
       height: 45px;
-      font-size: 16px;
+      font-size: var(--font-size-lg);
       font-weight: 600;
       margin-top: 10px;
-      border-radius: 8px;
-      transition: all 0.3s;
+      border-radius: var(--radius-md);
+      transition: all var(--transition-slow);
 
       &:hover {
         transform: translateY(-1px);
@@ -66,7 +56,6 @@ $text-secondary: #8c8c8c;
   }
 }
 
-// 移动端适配
 @media (max-width: 480px) {
   .loginCard {
     width: 90% !important;

@@ -3,7 +3,7 @@
  * @description Synthesizer Agent 用户提示词构建器
  */
 
-import type { ProfileObservation } from '../../types/profile-observation.type';
+import type { ProfileObservation } from '../profile-observation.type';
 
 /** 单次合并最多展示的 observation 数，超出部分按置信度截断 */
 const MAX_OBSERVATIONS_IN_PROMPT = 50;

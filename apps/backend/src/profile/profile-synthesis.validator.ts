@@ -3,7 +3,7 @@
  * @description 确定性验证层 — 纯函数，不依赖 LLM，对画像合并结果进行工程化校验
  */
 
-import type { ProfileObservation } from '../types/profile-observation.type';
+import type { ProfileObservation } from './profile-observation.type';
 import type {
   SchemaValidationResult,
   HallucinationResult,

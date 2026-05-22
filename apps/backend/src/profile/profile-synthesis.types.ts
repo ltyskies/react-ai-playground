@@ -4,7 +4,7 @@
  */
 
 import { z } from 'zod';
-import type { ProfileObservation } from '../types/profile-observation.type';
+import type { ProfileObservation } from './profile-observation.type';
 
 // ─── Synthesizer Agent 输出 ────────────────────────────────────────
 

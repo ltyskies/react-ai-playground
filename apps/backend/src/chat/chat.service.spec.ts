@@ -25,9 +25,9 @@ import { ChatService } from './chat.service';
 import { ConversationService } from './services/conversation.service';
 import { MessageService } from './services/message.service';
 import { ConversationSummaryService } from './services/conversation-summary.service';
-import { ProfileExtractionService } from './services/profile-extraction.service';
+import { ProfileExtractionService } from '../profile/profile-extraction.service';
 import { StreamGenerationService } from './services/stream-generation.service';
-import { ProfileSynthesisService } from './profile-synthesis';
+import { ProfileSynthesisService } from '../profile/profile-synthesis.service';
 import { MessageRole, StreamStatus } from './entities/message.entity';
 import type { ConversationWorkspace } from './types/conversation-workspace.type';
 

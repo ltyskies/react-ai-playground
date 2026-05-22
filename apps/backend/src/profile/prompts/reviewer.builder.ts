@@ -3,7 +3,7 @@
  * @description Reviewer Agent 用户提示词构建器
  */
 
-import type { ProfileObservation } from '../../types/profile-observation.type';
+import type { ProfileObservation } from '../profile-observation.type';
 import type { ValidationReport } from '../profile-synthesis.types';
 
 /**

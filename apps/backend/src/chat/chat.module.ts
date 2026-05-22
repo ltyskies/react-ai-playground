@@ -4,16 +4,15 @@
  * @module 聊天模块
  */
 
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ChatService } from './chat.service';
 import { ChatController } from './chat.controller';
 import { ConversationRuntimeMemoryService } from './conversation-runtime-memory.service';
-import { ProfileSynthesisService } from './profile-synthesis';
+import { ProfileModule } from '../profile/profile.module';
 import { ConversationService } from './services/conversation.service';
 import { MessageService } from './services/message.service';
 import { ConversationSummaryService } from './services/conversation-summary.service';
-import { ProfileExtractionService } from './services/profile-extraction.service';
 import { StreamGenerationService } from './services/stream-generation.service';
 import { Conversation } from './entities/conversation.entity';
 import { Message } from './entities/message.entity';
@@ -26,19 +25,18 @@ import { User } from '../user/entities/user.entity';
  */
 @Module({
   imports: [
-    // 导入会话、消息和用户实体，供聊天服务查询与持久化使用。
     TypeOrmModule.forFeature([Conversation, Message, User]),
+    forwardRef(() => ProfileModule),
   ],
   controllers: [ChatController],
   providers: [
     ChatService,
     ConversationRuntimeMemoryService,
-    ProfileSynthesisService,
     ConversationService,
     MessageService,
     ConversationSummaryService,
-    ProfileExtractionService,
     StreamGenerationService,
   ],
+  exports: [ConversationSummaryService, MessageService],
 })
 export class ChatModule {}

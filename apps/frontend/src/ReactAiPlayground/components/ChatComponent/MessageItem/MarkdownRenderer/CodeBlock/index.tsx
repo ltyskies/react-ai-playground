@@ -88,12 +88,12 @@ const CodeBlock = memo(({ language, value, fileName }: CodeBlockProps) => {
                 style={prismTheme}
                 customStyle={{
                     margin: 0,
-                    borderRadius: '0 0 8px 8px',
+                    borderRadius: '0 0 var(--radius-md) var(--radius-md)',
                     background: 'transparent',
                     fontSize: '14px'
                 }}
                 codeTagProps={{
-                    style: { color: '#000000', fontFamily: 'Fira Code, monospace' }
+                    style: { color: 'var(--color-text-primary)', fontFamily: 'Fira Code, monospace' }
                 }}
             >
                 {value}

@@ -1,21 +1,19 @@
-// index.module.scss
-
 .codeBlockWrapper {
   margin: 16px 0;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   overflow: hidden;
-  background: #f5f5f5;
+  background: var(--color-bg-layout);
 
   .codeHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 8px 16px;
-    background: #eeeeee;
-    border-bottom: 1px solid #e0e0e0;
-    font-size: 12px;
-    color: #666;
+    background: var(--color-border-secondary);
+    border-bottom: 1px solid var(--color-border);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
     font-family: sans-serif;
 
     .headerLeft {
@@ -33,9 +31,9 @@
         align-items: center;
         gap: 4px;
         padding: 2px 8px;
-        background: #e3f2fd;
-        color: #1976d2;
-        border-radius: 4px;
+        background: var(--color-primary-bg);
+        color: var(--color-primary);
+        border-radius: var(--radius-sm);
         font-weight: 500;
       }
     }
@@ -52,17 +50,17 @@
       gap: 4px;
       background: transparent;
       border: 1px solid #ccc;
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
       padding: 4px 10px;
       cursor: pointer;
-      transition: all 0.2s;
-      color: #666;
-      font-size: 12px;
+      transition: all var(--transition-base);
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-sm);
 
       &:hover {
         background: #e0e0e0;
-        color: #333;
-        border-color: #999;
+        color: var(--color-text-primary);
+        border-color: var(--color-text-tertiary);
       }
 
       &.success {
@@ -74,9 +72,9 @@
 
     .applyBtn {
       &:hover {
-        background: #e3f2fd;
-        color: #1976d2;
-        border-color: #2196f3;
+        background: var(--color-primary-bg);
+        color: var(--color-primary);
+        border-color: var(--color-primary);
       }
 
       &.success {
@@ -87,8 +85,6 @@
     }
   }
 
-  // 针对 SyntaxHighlighter 生成的 pre 标签进行样式微调
-  // 使用 :global 因为 pre 是组件内部生成的
   :global {
     pre {
       margin: 0 !important;

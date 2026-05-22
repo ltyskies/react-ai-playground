@@ -1,9 +1,7 @@
-// index.module.scss
-
 .previewSkeleton {
   width: 100%;
   height: 100%;
-  background-color: #f9f9f9;
+  background-color: var(--color-bg-layout);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11,13 +9,12 @@
   overflow: hidden;
 
   .loadingText {
-    font-size: 14px;
-    color: #999;
+    font-size: var(--font-size-base);
+    color: var(--color-text-tertiary);
     letter-spacing: 2px;
     z-index: 1;
   }
 
-  // 这里的 &.skeleton 对应 styles.previewSkeleton 且同时拥有 styles.skeleton 时
   &.skeleton::after {
     content: "";
     position: absolute;

@@ -24,8 +24,8 @@ export default () => ({
     username: process.env.DB_USERNAME || 'root',
     /** 数据库密码，默认为 123456 */
     password: process.env.DB_PASSWORD || '123456',
-    /** 数据库名称，默认为 ai_chat_db */
-    database: process.env.DB_DATABASE || 'ai_chat_db',
+    /** 数据库名称，默认为 react_ai_playground */
+    database: process.env.DB_DATABASE || 'react_ai_playground',
     /** 是否自动同步数据库结构，默认为 false */
     synchronize: process.env.DB_SYNC === 'true',
   },

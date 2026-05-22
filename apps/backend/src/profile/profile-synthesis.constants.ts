@@ -1,6 +1,6 @@
 /**
  * @file profile-synthesis.constants.ts
- * @description 画像合成 Agent 循环的阈值与限制常量
+ * @description 画像模块常量：合成 Agent 循环阈值与提取控制参数
  */
 
 /** Synthesize-Review 最大迭代次数 */
@@ -31,3 +31,9 @@ export const PROFILE_SECTIONS = [
 
 /** 画像为空时的占位内容 */
 export const EMPTY_SECTION_PLACEHOLDER = '- 暂无';
+
+/** Phase 1 事实提取单批处理的轮次数。 */
+export const PROFILE_FACT_EXTRACTION_BATCH_ROUNDS = 5;
+
+/** 触发画像提取的最小新增轮次数。 */
+export const PROFILE_EXTRACTION_MIN_ROUNDS = 3;

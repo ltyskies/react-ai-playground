@@ -11,22 +11,20 @@ import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { ChatOpenAI } from '@langchain/openai';
-import { User } from '../../user/entities/user.entity';
-import { Conversation } from '../entities/conversation.entity';
-import { createSummaryModel } from '../config';
-import { ConversationSummaryService } from './conversation-summary.service';
-import { MessageService } from './message.service';
-import { ProfileSynthesisService } from '../profile-synthesis';
-import {
-  FACT_EXTRACTOR_SYSTEM_PROMPT,
-  buildFactExtractorPrompt,
-} from '../profile-synthesis';
-import type { ProfileObservation } from '../types/profile-observation.type';
-import type { ProfileFactExtractionResult } from '../types/profile-observation.type';
+import { User } from '../user/entities/user.entity';
+import { Conversation } from '../chat/entities/conversation.entity';
+import { createSummaryModel } from '../chat/config';
+import { ConversationSummaryService } from '../chat/services/conversation-summary.service';
+import { MessageService } from '../chat/services/message.service';
+import { ProfileSynthesisService } from './profile-synthesis.service';
+import { FACT_EXTRACTOR_SYSTEM_PROMPT } from './prompts/fact-extractor.prompt';
+import { buildFactExtractorPrompt } from './prompts/fact-extractor.builder';
+import type { ProfileObservation } from './profile-observation.type';
+import type { ProfileFactExtractionResult } from './profile-observation.type';
 import {
   PROFILE_FACT_EXTRACTION_BATCH_ROUNDS,
   PROFILE_EXTRACTION_MIN_ROUNDS,
-} from '../config';
+} from './profile-synthesis.constants';
 
 @Injectable()
 export class ProfileExtractionService {

@@ -14,7 +14,7 @@ jest.mock('@langchain/openai', () => ({
 }));
 
 import { ProfileSynthesisService } from './profile-synthesis.service';
-import type { ProfileObservation } from '../types/profile-observation.type';
+import type { ProfileObservation } from './profile-observation.type';
 
 const VALID_PROFILE = `## 编码风格
 - 使用 React + TypeScript 技术栈

@@ -10,7 +10,5 @@ export {
   SUMMARY_TRIGGER_ROUNDS,
   RAW_HISTORY_RETENTION_ROUNDS,
   SUMMARY_BATCH_ROUNDS,
-  PROFILE_FACT_EXTRACTION_BATCH_ROUNDS,
-  PROFILE_EXTRACTION_MIN_ROUNDS,
 } from './chat-constants';
 export { createChatModel, createSummaryModel } from './model.config';

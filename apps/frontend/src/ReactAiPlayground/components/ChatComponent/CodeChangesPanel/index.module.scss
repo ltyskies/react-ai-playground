@@ -1,11 +1,9 @@
-// index.module.scss
-
 .panelContainer {
     display: flex;
     flex-direction: column;
     height: 100%;
     min-width: 0;
-    background: #fff;
+    background: var(--color-bg-base);
     overflow: hidden;
 }
 
@@ -15,8 +13,8 @@
     align-items: center;
     min-height: 68px;
     padding: 16px 20px;
-    border-bottom: 1px solid #f0f0f0;
-    background: #fff;
+    border-bottom: 1px solid var(--color-border-secondary);
+    background: var(--color-bg-base);
     gap: 12px;
     flex-shrink: 0;
 
@@ -29,15 +27,15 @@
         font-size: 18px;
         line-height: 1.2;
         font-weight: 600;
-        color: #333;
+        color: var(--color-text-primary);
     }
 
     .badge {
         padding: 3px 10px;
-        background: #eef6ff;
-        color: #1677ff;
+        background: var(--color-primary-bg);
+        color: var(--color-primary);
         border-radius: 999px;
-        font-size: 12px;
+        font-size: var(--font-size-sm);
         font-weight: 600;
         line-height: 1.2;
     }
@@ -48,18 +46,18 @@
         justify-content: center;
         width: 36px;
         height: 36px;
-        border: 1px solid #e5e7eb;
-        background: #fff;
-        border-radius: 10px;
+        border: 1px solid var(--color-border);
+        background: var(--color-bg-base);
+        border-radius: var(--radius-md);
         cursor: pointer;
-        color: #666;
-        transition: all 0.2s;
+        color: var(--color-text-secondary);
+        transition: all var(--transition-base);
         flex-shrink: 0;
 
         &:hover {
-            background: #f7f7f7;
-            border-color: #d8d8d8;
-            color: #333;
+            background: var(--color-bg-layout);
+            border-color: var(--color-border);
+            color: var(--color-text-primary);
         }
     }
 }
@@ -69,8 +67,8 @@
     flex-wrap: wrap;
     gap: 10px;
     padding: 12px 20px;
-    border-bottom: 1px solid #f0f0f0;
-    background: #fff;
+    border-bottom: 1px solid var(--color-border-secondary);
+    background: var(--color-bg-base);
     flex-shrink: 0;
 
     button {
@@ -80,19 +78,19 @@
         min-height: 34px;
         padding: 0 14px;
         border: 1px solid transparent;
-        border-radius: 8px;
-        font-size: 13px;
+        border-radius: var(--radius-md);
+        font-size: var(--font-size-sm);
         font-weight: 500;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all var(--transition-base);
     }
 
     .batchApplyBtn {
-        background: #10a37f;
+        background: var(--color-success);
         color: #fff;
 
         &:hover {
-            background: #0f8d6e;
+            background: var(--color-success-active);
         }
     }
 
@@ -118,9 +116,9 @@
 }
 
 .changeGroup {
-    border: 1px solid #e6e8eb;
-    border-radius: 14px;
-    background: linear-gradient(180deg, #fafcff 0%, #ffffff 100%);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    background: linear-gradient(180deg, #fafcff 0%, var(--color-bg-base) 100%);
 }
 
 .groupItems {
@@ -132,15 +130,15 @@
 
 .changeItem {
     margin-bottom: 0;
-    border: 1px solid #e6e8eb;
-    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
     overflow: hidden;
-    background: #fff;
-    transition: all 0.2s;
+    background: var(--color-bg-base);
+    transition: all var(--transition-base);
 
     &:hover {
-        border-color: #d6d9de;
-        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+        border-color: var(--color-border-secondary);
+        box-shadow: var(--shadow-md);
     }
 
     &.applied {
@@ -159,19 +157,19 @@
     align-items: center;
     gap: 12px;
     padding: 12px 14px;
-    background: #fafafa;
+    background: var(--color-bg-layout);
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background var(--transition-base);
 
     &:hover {
-        background: #f5f5f5;
+        background: var(--color-border-secondary);
     }
 
     .headerLeft {
         display: flex;
         align-items: center;
         gap: 8px;
-        color: #333;
+        color: var(--color-text-primary);
         min-width: 0;
         flex: 1;
 
@@ -181,7 +179,7 @@
             text-overflow: ellipsis;
             white-space: nowrap;
             font-weight: 500;
-            font-size: 13px;
+            font-size: var(--font-size-sm);
         }
 
         .stats {
@@ -192,11 +190,11 @@
             flex-shrink: 0;
 
             .added {
-                color: #10a37f;
+                color: var(--color-success);
             }
 
             .removed {
-                color: #f44336;
+                color: var(--color-error);
             }
         }
     }
@@ -214,16 +212,16 @@
         width: 30px;
         height: 30px;
         border: none;
-        border-radius: 8px;
+        border-radius: var(--radius-md);
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all var(--transition-base);
 
         &.applyBtn {
-            background: #10a37f;
+            background: var(--color-success);
             color: #fff;
 
             &:hover {
-                background: #0f8d6e;
+                background: var(--color-success-active);
             }
         }
 
@@ -240,9 +238,9 @@
 
 .diffContent {
     padding: 12px;
-    background: #fafafa;
+    background: var(--color-bg-layout);
     font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
-    font-size: 12px;
+    font-size: var(--font-size-sm);
     line-height: 1.5;
     max-height: min(420px, 60vh);
     overflow: auto;
@@ -295,7 +293,7 @@
     }
 
     &.lineUnchanged {
-        color: #666;
+        color: var(--color-text-secondary);
     }
 }
 
@@ -306,7 +304,7 @@
     justify-content: center;
     flex: 1;
     padding: 40px 20px;
-    color: #999;
+    color: var(--color-text-tertiary);
     text-align: center;
 
     svg {
@@ -316,11 +314,11 @@
 
     p {
         margin: 0 0 8px;
-        font-size: 14px;
-        color: #666;
+        font-size: var(--font-size-base);
+        color: var(--color-text-secondary);
     }
 
     span {
-        font-size: 12px;
+        font-size: var(--font-size-sm);
     }
 }
