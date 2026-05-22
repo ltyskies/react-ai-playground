@@ -19,10 +19,10 @@ import { User } from '../../user/entities/user.entity';
 import { createSummaryModel } from '../config';
 import type { ProfileObservation } from '../types/profile-observation.type';
 import { validateProfile } from './profile-synthesis.validator';
-import { SYNTHESIZER_SYSTEM_PROMPT } from './synthesizer.prompt';
-import { buildSynthesizerPrompt } from './synthesizer.builder';
-import { REVIEWER_SYSTEM_PROMPT } from './reviewer.prompt';
-import { buildReviewerPrompt } from './reviewer.builder';
+import { SYNTHESIZER_SYSTEM_PROMPT } from './prompts/synthesizer.prompt';
+import { buildSynthesizerPrompt } from './prompts/synthesizer.builder';
+import { REVIEWER_SYSTEM_PROMPT } from './prompts/reviewer.prompt';
+import { buildReviewerPrompt } from './prompts/reviewer.builder';
 import { MAX_SYNTHESIS_ITERATIONS } from './profile-synthesis.constants';
 import {
   SynthesizerOutputSchema,

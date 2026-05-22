@@ -10,6 +10,11 @@ import { ChatService } from './chat.service';
 import { ChatController } from './chat.controller';
 import { ConversationRuntimeMemoryService } from './conversation-runtime-memory.service';
 import { ProfileSynthesisService } from './profile-synthesis';
+import { ConversationService } from './services/conversation.service';
+import { MessageService } from './services/message.service';
+import { ConversationSummaryService } from './services/conversation-summary.service';
+import { ProfileExtractionService } from './services/profile-extraction.service';
+import { StreamGenerationService } from './services/stream-generation.service';
 import { Conversation } from './entities/conversation.entity';
 import { Message } from './entities/message.entity';
 import { User } from '../user/entities/user.entity';
@@ -29,6 +34,11 @@ import { User } from '../user/entities/user.entity';
     ChatService,
     ConversationRuntimeMemoryService,
     ProfileSynthesisService,
+    ConversationService,
+    MessageService,
+    ConversationSummaryService,
+    ProfileExtractionService,
+    StreamGenerationService,
   ],
 })
 export class ChatModule {}

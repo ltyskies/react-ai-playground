@@ -22,6 +22,12 @@ jest.mock('@langchain/openai', () => ({
 
 import { ConversationRuntimeMemoryService } from './conversation-runtime-memory.service';
 import { ChatService } from './chat.service';
+import { ConversationService } from './services/conversation.service';
+import { MessageService } from './services/message.service';
+import { ConversationSummaryService } from './services/conversation-summary.service';
+import { ProfileExtractionService } from './services/profile-extraction.service';
+import { StreamGenerationService } from './services/stream-generation.service';
+import { ProfileSynthesisService } from './profile-synthesis';
 import { MessageRole, StreamStatus } from './entities/message.entity';
 import type { ConversationWorkspace } from './types/conversation-workspace.type';
 
@@ -314,12 +320,45 @@ describe('ChatService', () => {
     };
 
     runtimeMemoryService = new ConversationRuntimeMemoryService();
-    service = new ChatService(
+
+    const conversationService = new ConversationService(
       conversationRepo as any,
+      userRepo as any,
+      runtimeMemoryService,
+    );
+    const messageService = new MessageService(
       messageRepo as any,
+      runtimeMemoryService,
+    );
+    const conversationSummaryService = new ConversationSummaryService(
+      conversationRepo as any,
+      configService as any,
+    );
+    const profileSynthesisService = {
+      synthesize: jest.fn().mockResolvedValue(null),
+    } as unknown as ProfileSynthesisService;
+    const profileExtractionService = new ProfileExtractionService(
+      userRepo as any,
+      conversationRepo as any,
+      configService as any,
+      conversationSummaryService,
+      messageService,
+      profileSynthesisService,
+    );
+    const streamGenerationService = new StreamGenerationService(
       userRepo as any,
       configService as any,
-      runtimeMemoryService,
+      conversationService,
+      messageService,
+      conversationSummaryService,
+    );
+
+    service = new ChatService(
+      conversationService,
+      messageService,
+      conversationSummaryService,
+      profileExtractionService,
+      streamGenerationService,
     );
   });
 

@@ -1,10 +1,10 @@
 .header {
-  height: 50px;
+  height: 56px;
   padding: 0 20px;
   box-sizing: border-box;
-  border-bottom: 1px solid #000;
-  background-color: var(--bg);
-  color: var(--text);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -24,19 +24,19 @@
 .aiButton {
   cursor: pointer;
   font-weight: 500;
-  color: inherit;
+  color: var(--color-text-secondary);
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   margin-left: 50px;
-  transition: all 0.2s;
+  transition: all var(--transition-base);
   user-select: none;
   display: inline-flex;
   align-items: center;
 }
 
 .active {
-  color: #1677ff;
-  background: rgba(22, 119, 255, 0.08);
+  color: var(--color-primary);
+  background: var(--color-primary-bg);
 }
 
 .links {
@@ -49,16 +49,16 @@
   width: 32px;
   height: 32px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: transparent;
-  color: inherit;
+  color: var(--color-text-secondary);
   font-size: 18px;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+  transition: background-color var(--transition-base), color var(--transition-base), opacity var(--transition-base);
 
   &:hover {
-    background: #f5f5f5;
-    color: #1677ff;
+    background: var(--color-bg-layout);
+    color: var(--color-primary);
   }
 
   &:disabled {
@@ -70,17 +70,17 @@
 .labelButton {
   border: none;
   background: transparent;
-  color: inherit;
+  color: var(--color-text-secondary);
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
   padding: 6px 10px;
-  border-radius: 8px;
-  transition: background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+  border-radius: var(--radius-md);
+  transition: background-color var(--transition-base), color var(--transition-base), opacity var(--transition-base);
 
   &:hover {
-    background: #f5f5f5;
-    color: #1677ff;
+    background: var(--color-bg-layout);
+    color: var(--color-primary);
   }
 
   &:disabled {

@@ -1,10 +1,10 @@
 /**
- * @file profile-fact-extractor.builder.ts
+ * @file fact-extractor.builder.ts
  * @description Phase 1 事实提取的用户提示词构建器
  */
 
-import type { CompletedConversationRound } from './summary-prompt.builder';
-import { formatConversationRoundsForSummary } from './summary-prompt.builder';
+import type { CompletedConversationRound } from '../../prompts/summary-prompt.builder';
+import { formatConversationRoundsForSummary } from '../../prompts/summary-prompt.builder';
 
 /**
  * 构建事实提取的用户提示词
