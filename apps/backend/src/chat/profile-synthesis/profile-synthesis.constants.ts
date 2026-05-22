@@ -21,12 +21,11 @@ export const FUZZY_MATCH_THRESHOLD = 0.3;
 /** 画像最低字符数，低于此值视为无效 */
 export const MIN_PROFILE_LENGTH = 50;
 
-/** 标准画像的 5 个 section 标题 */
+/** 标准画像的 4 个 section 标题 */
 export const PROFILE_SECTIONS = [
   '## 编码风格',
   '## 技术偏好',
   '## 沟通方式',
-  '## 项目上下文',
   '## 其他习惯',
 ];
 
