@@ -24,10 +24,6 @@ import { buildSynthesizerPrompt } from './prompts/synthesizer.builder';
 import { REVIEWER_SYSTEM_PROMPT } from './prompts/reviewer.prompt';
 import { buildReviewerPrompt } from './prompts/reviewer.builder';
 import { MAX_SYNTHESIS_ITERATIONS } from './profile-synthesis.constants';
-import {
-  SynthesizerOutputSchema,
-  ReviewerOutputSchema,
-} from './profile-synthesis.types';
 import type {
   SynthesizerOutput,
   ReviewerOutput,
@@ -190,11 +186,7 @@ export class ProfileSynthesisService {
     reviewerFeedback: string | null,
   ): Promise<SynthesizerOutput | null> {
     try {
-      const synthesizer = this.summaryModel.withStructuredOutput(
-        SynthesizerOutputSchema,
-        { method: 'functionCalling' },
-      );
-      return await synthesizer.invoke([
+      const response = await this.summaryModel.invoke([
         new SystemMessage(SYNTHESIZER_SYSTEM_PROMPT),
         new HumanMessage(
           buildSynthesizerPrompt(
@@ -204,6 +196,16 @@ export class ProfileSynthesisService {
           ),
         ),
       ]);
+
+      const rawText = this.extractContent(response.content);
+      return this.parseModelJson<SynthesizerOutput>(
+        rawText,
+        (parsed): parsed is SynthesizerOutput =>
+          typeof parsed === 'object' &&
+          parsed !== null &&
+          typeof (parsed as Record<string, unknown>).profile === 'string' &&
+          Array.isArray((parsed as Record<string, unknown>).operations),
+      );
     } catch (error) {
       console.error('Synthesizer agent call failed:', error);
       return null;
@@ -218,11 +220,7 @@ export class ProfileSynthesisService {
     validationReport: ReturnType<typeof validateProfile>,
   ): Promise<ReviewerOutput | null> {
     try {
-      const reviewer = this.summaryModel.withStructuredOutput(
-        ReviewerOutputSchema,
-        { method: 'functionCalling' },
-      );
-      return await reviewer.invoke([
+      const response = await this.summaryModel.invoke([
         new SystemMessage(REVIEWER_SYSTEM_PROMPT),
         new HumanMessage(
           buildReviewerPrompt(
@@ -233,10 +231,77 @@ export class ProfileSynthesisService {
           ),
         ),
       ]);
+
+      const rawText = this.extractContent(response.content);
+      return this.parseModelJson<ReviewerOutput>(
+        rawText,
+        (parsed): parsed is ReviewerOutput =>
+          typeof parsed === 'object' &&
+          parsed !== null &&
+          typeof (parsed as Record<string, unknown>).approved === 'boolean' &&
+          typeof (parsed as Record<string, unknown>).score === 'number',
+      );
     } catch (error) {
       console.error('Reviewer agent call failed:', error);
       return null;
     }
+  }
+
+  // ─── Private: JSON 解析 ─────────────────────────────────────────
+
+  /**
+   * 解析模型的结构化 JSON 输出
+   * 兼容模型包裹 markdown fences 的情况
+   */
+  private parseModelJson<T>(
+    rawText: string,
+    validator: (parsed: unknown) => parsed is T,
+  ): T | null {
+    try {
+      let jsonText = rawText.trim();
+
+      const fenceMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (fenceMatch) {
+        jsonText = fenceMatch[1].trim();
+      }
+
+      const parsed = JSON.parse(jsonText);
+
+      if (!validator(parsed)) {
+        console.error(
+          'Model JSON failed validation. Parsed type:',
+          typeof parsed,
+          Array.isArray(parsed)
+            ? '(array)'
+            : Object.keys(parsed as object).join(', '),
+        );
+        return null;
+      }
+
+      return parsed;
+    } catch (error) {
+      console.error('Failed to parse model JSON:', error);
+      return null;
+    }
+  }
+
+  /** 从 LangChain 消息 content 中提取文本 */
+  private extractContent(content: unknown): string {
+    if (typeof content === 'string') {
+      return content;
+    }
+    if (Array.isArray(content)) {
+      return content
+        .map((part) => {
+          if (typeof part === 'string') return part;
+          if (typeof part === 'object' && part !== null && 'text' in part) {
+            return String((part as { text: unknown }).text);
+          }
+          return '';
+        })
+        .join('');
+    }
+    return '';
   }
 
   /** 将 Reviewer 输出格式化为 Synthesizer 可理解的反馈字符串 */

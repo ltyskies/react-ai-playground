@@ -1,95 +1,87 @@
 /**
  * @file profile-synthesis.types.ts
- * @description 画像合成 Agent 循环的全部类型定义，LLM 输出使用 Zod schema 校验
+ * @description 画像合成 Agent 循环的全部类型定义
  */
 
-import { z } from 'zod';
 import type { ProfileObservation } from './profile-observation.type';
 
 // ─── Synthesizer Agent 输出 ────────────────────────────────────────
 
-/** Synthesizer 报告的单个合并操作 */
-export const SynthesizerOperationSchema = z.discriminatedUnion('action', [
-  z.object({
-    action: z.literal('keep'),
-    category: z.string(),
-    fact: z.string(),
-    rationale: z.string(),
-  }),
-  z.object({
-    action: z.literal('add'),
-    category: z.string(),
-    fact: z.string(),
-    evidence: z.string(),
-    rationale: z.string(),
-  }),
-  z.object({
-    action: z.literal('update'),
-    category: z.string(),
-    old_fact: z.string(),
-    new_fact: z.string(),
-    evidence: z.string(),
-    rationale: z.string(),
-  }),
-  z.object({
-    action: z.literal('remove'),
-    category: z.string(),
-    fact: z.string(),
-    rationale: z.string(),
-  }),
-  z.object({
-    action: z.literal('merge'),
-    category: z.string(),
-    facts: z.array(z.string()),
-    merged_fact: z.string(),
-    rationale: z.string(),
-  }),
-  z.object({
-    action: z.literal('conflict_defer'),
-    category: z.string(),
-    observation_a: z.string(),
-    observation_b: z.string(),
-    note: z.string(),
-  }),
-]);
-
 /** Synthesizer Agent 的结构化输出 */
-export const SynthesizerOutputSchema = z.object({
-  profile: z.string(),
-  operations: z.array(SynthesizerOperationSchema),
-});
+export interface SynthesizerOutput {
+  /** 完整的 Markdown 格式用户画像（5 个标准 section） */
+  profile: string;
+  /** 本次合并过程中执行的所有原子操作清单 */
+  operations: SynthesizerOperation[];
+}
 
-export type SynthesizerOperation = z.infer<typeof SynthesizerOperationSchema>;
-export type SynthesizerOutput = z.infer<typeof SynthesizerOutputSchema>;
+/** Synthesizer 报告的单个合并操作 */
+export type SynthesizerOperation =
+  | { action: 'keep'; category: string; fact: string; rationale: string }
+  | {
+      action: 'add';
+      category: string;
+      fact: string;
+      evidence: string;
+      rationale: string;
+    }
+  | {
+      action: 'update';
+      category: string;
+      old_fact: string;
+      new_fact: string;
+      evidence: string;
+      rationale: string;
+    }
+  | { action: 'remove'; category: string; fact: string; rationale: string }
+  | {
+      action: 'merge';
+      category: string;
+      facts: string[];
+      merged_fact: string;
+      rationale: string;
+    }
+  | {
+      action: 'conflict_defer';
+      category: string;
+      observation_a: string;
+      observation_b: string;
+      note: string;
+    };
 
 // ─── Reviewer Agent 输出 ───────────────────────────────────────────
 
-/** Reviewer 发现的具体问题 */
-export const ReviewerIssueSchema = z.object({
-  severity: z.enum(['critical', 'high', 'medium', 'low']),
-  type: z.enum([
-    'hallucination',
-    'missing_fact',
-    'contradiction',
-    'format',
-    'over_merge',
-    'stale_info',
-  ]),
-  detail: z.string(),
-  affected_section: z.string().optional(),
-  suggested_fix: z.string().optional(),
-});
-
 /** Reviewer Agent 的结构化输出 */
-export const ReviewerOutputSchema = z.object({
-  approved: z.boolean(),
-  score: z.number().int().min(0).max(100),
-  critical_issues: z.array(ReviewerIssueSchema),
-  suggestions: z.array(z.string()),
-});
+export interface ReviewerOutput {
+  /** 是否批准本次画像合并结果 */
+  approved: boolean;
+  /** 质量评分（0-100） */
+  score: number;
+  /** 必须修复的问题列表 */
+  critical_issues: ReviewerIssue[];
+  /** 改进建议 */
+  suggestions: string[];
+}
 
-export type ReviewerIssue = z.infer<typeof ReviewerIssueSchema>;
-export type ReviewerOutput = z.infer<typeof ReviewerOutputSchema>;
+/** Reviewer 发现的具体问题 */
+export interface ReviewerIssue {
+  /** 严重程度 */
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  /** 问题类型 */
+  type:
+    | 'hallucination'
+    | 'missing_fact'
+    | 'contradiction'
+    | 'format'
+    | 'over_merge'
+    | 'stale_info';
+  /** 问题描述 */
+  detail: string;
+  /** 影响的画像 section */
+  affected_section?: string;
+  /** 建议的修复方案 */
+  suggested_fix?: string;
+}
 
 // ─── 确定性验证层输出 ──────────────────────────────────────────────
 

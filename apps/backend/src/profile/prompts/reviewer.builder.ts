@@ -37,7 +37,7 @@ ${validationSummary}
 ## 原始观察清单（共 ${observations.length} 条）
 ${observationsSummary}
 
-请对画像合并结果进行质量审阅。`;
+请输出包含 approved、score、critical_issues 和 suggestions 的完整 JSON 对象，不要输出其他内容。`;
 }
 
 /** 将验证报告格式化为 Reviewer 可读的摘要 */
