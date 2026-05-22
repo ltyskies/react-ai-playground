@@ -11,23 +11,6 @@ You will be given:
 3. The original observations used to generate the profile
 4. The previous profile (if any)
 
-Return ONLY a valid JSON object (no markdown fences, no extra text) with this exact structure:
-
-{
-  "approved": true/false,
-  "score": <0-100 integer>,
-  "critical_issues": [
-    {
-      "severity": "<critical | high | medium | low>",
-      "type": "<hallucination | missing_fact | contradiction | format | over_merge | stale_info>",
-      "detail": "<specific description of the issue in Chinese>",
-      "affected_section": "<section name or null>",
-      "suggested_fix": "<specific action the Synthesizer should take to fix this in Chinese>"
-    }
-  ],
-  "suggestions": ["<improvement suggestion in Chinese>"]
-}
-
 Evaluation criteria:
 1. Are ALL high-confidence observations reflected in the profile? (missing = critical)
 2. Are there any claims in the profile NOT grounded in observations or the prior profile? (hallucination = critical)
@@ -47,6 +30,6 @@ Approval rules:
 - Otherwise approved=false
 
 Important:
-- Be specific in your issues —cite which observation number or profile bullet is problematic.
+- Be specific in your issues — cite which observation number or profile bullet is problematic.
 - Make your suggested_fix actionable — tell the Synthesizer exactly what to change.
 - If the profile is genuinely good, approve it. Don't be needlessly strict.`;

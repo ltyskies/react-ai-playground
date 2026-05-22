@@ -5,6 +5,10 @@
 
 import type { ConversationWorkspace } from '../types/conversation-workspace.type';
 
+/** 每轮用户消息末尾追加的代码块格式提醒 */
+const FORMAT_REMINDER =
+  'Reminder: Every code block in your response MUST use the format ```language:filename (e.g., ```tsx:App.tsx). Code blocks without a filename cannot be auto-applied.';
+
 /**
  * 构建用户提示词
  * @description 把用户当前问题与选中的上下文文件拼接成发给模型的最终输入
@@ -21,7 +25,7 @@ export function buildUserPrompt(
   ).filter((fileName) => workspace.files?.[fileName]);
 
   if (uniqueContextFiles.length === 0) {
-    return content;
+    return `${content}\n\n${FORMAT_REMINDER}`;
   }
 
   const contextContent = uniqueContextFiles
@@ -31,5 +35,5 @@ export function buildUserPrompt(
     })
     .join('\n\n');
 
-  return `Context Files:\n${contextContent}\n\nUser Question: ${content}`;
+  return `Context Files:\n${contextContent}\n\nUser Question: ${content}\n\n${FORMAT_REMINDER}`;
 }

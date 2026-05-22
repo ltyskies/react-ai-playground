@@ -41,7 +41,7 @@ ${currentProfile || '暂无画像，这是首次合成。'}
 ## 新提取的偏好事实
 ${observationsText}
 
-请输出包含 profile 和 operations 的完整 JSON 对象，不要输出其他内容。`;
+请输出更新后的用户画像和合并操作日志。`;
 }
 
 /**

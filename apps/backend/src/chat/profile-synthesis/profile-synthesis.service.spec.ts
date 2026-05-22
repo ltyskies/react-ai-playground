@@ -3,11 +3,13 @@
  * @description ProfileSynthesisService 的单元测试
  */
 
-let mockSummaryModelInvoke: jest.Mock;
+let mockStructuredInvoke: jest.Mock;
 
 jest.mock('@langchain/openai', () => ({
   ChatOpenAI: jest.fn().mockImplementation(() => ({
-    invoke: (...args: unknown[]) => mockSummaryModelInvoke(...args),
+    withStructuredOutput: () => ({
+      invoke: (...args: unknown[]) => mockStructuredInvoke(...args),
+    }),
   })),
 }));
 
@@ -30,43 +32,37 @@ const VALID_PROFILE = `## 编码风格
 - 暂无`;
 
 const makeSynthesizerResponse = (profile: string) => ({
-  content: JSON.stringify({
-    profile,
-    operations: [
-      {
-        action: 'keep',
-        category: 'coding_style',
-        fact: '使用 React + TypeScript 技术栈',
-        rationale: '仍然准确',
-      },
-    ],
-  }),
+  profile,
+  operations: [
+    {
+      action: 'keep' as const,
+      category: 'coding_style',
+      fact: '使用 React + TypeScript 技术栈',
+      rationale: '仍然准确',
+    },
+  ],
 });
 
 const makeReviewerApprove = () => ({
-  content: JSON.stringify({
-    approved: true,
-    score: 85,
-    critical_issues: [],
-    suggestions: ['可以再补充一些技术偏好细节'],
-  }),
+  approved: true,
+  score: 85,
+  critical_issues: [],
+  suggestions: ['可以再补充一些技术偏好细节'],
 });
 
 const makeReviewerReject = (score = 55) => ({
-  content: JSON.stringify({
-    approved: false,
-    score,
-    critical_issues: [
-      {
-        severity: 'high',
-        type: 'missing_fact',
-        detail: '缺少关于数据库偏好的 observation',
-        affected_section: '技术偏好',
-        suggested_fix: '在技术偏好中补充用户的数据存储偏好',
-      },
-    ],
-    suggestions: ['下一次请更仔细地覆盖所有 high 置信度观察'],
-  }),
+  approved: false,
+  score,
+  critical_issues: [
+    {
+      severity: 'high' as const,
+      type: 'missing_fact' as const,
+      detail: '缺少关于数据库偏好的 observation',
+      affected_section: '技术偏好',
+      suggested_fix: '在技术偏好中补充用户的数据存储偏好',
+    },
+  ],
+  suggestions: ['下一次请更仔细地覆盖所有 high 置信度观察'],
 });
 
 const makeObservations = (count = 5): ProfileObservation[] =>
@@ -84,7 +80,7 @@ describe('ProfileSynthesisService', () => {
   let savedProfileData: Record<string, unknown> | null;
 
   beforeEach(() => {
-    mockSummaryModelInvoke = jest.fn();
+    mockStructuredInvoke = jest.fn();
 
     savedProfileData = null;
 
@@ -128,7 +124,7 @@ describe('ProfileSynthesisService', () => {
   it('空 observations 应直接返回 null', async () => {
     const result = await service.synthesize(1, []);
     expect(result).toBeNull();
-    expect(mockSummaryModelInvoke).not.toHaveBeenCalled();
+    expect(mockStructuredInvoke).not.toHaveBeenCalled();
   });
 
   it('用户不存在时应返回 null', async () => {
@@ -141,7 +137,7 @@ describe('ProfileSynthesisService', () => {
   // ─── Agent 循环测试 ──────────────────────────────────────────────
 
   it('单轮成功路径：Synthesizer 合法输出 + Reviewer 批准', async () => {
-    mockSummaryModelInvoke
+    mockStructuredInvoke
       .mockResolvedValueOnce(makeSynthesizerResponse(VALID_PROFILE))
       .mockResolvedValueOnce(makeReviewerApprove());
 
@@ -155,11 +151,11 @@ describe('ProfileSynthesisService', () => {
     expect(result!.finalReviewScore).toBe(85);
     expect(result!.toContent).toBe(VALID_PROFILE);
     expect(userRepo.save).toHaveBeenCalledTimes(1);
-    expect(mockSummaryModelInvoke).toHaveBeenCalledTimes(2); // Synthesizer + Reviewer
+    expect(mockStructuredInvoke).toHaveBeenCalledTimes(2); // Synthesizer + Reviewer
   });
 
   it('两轮精炼路径：第1轮驳回 → 第2轮批准', async () => {
-    mockSummaryModelInvoke
+    mockStructuredInvoke
       .mockResolvedValueOnce(makeSynthesizerResponse(VALID_PROFILE))
       .mockResolvedValueOnce(makeReviewerReject(55))
       .mockResolvedValueOnce(makeSynthesizerResponse(VALID_PROFILE))
@@ -171,12 +167,12 @@ describe('ProfileSynthesisService', () => {
     expect(result).not.toBeNull();
     expect(result!.iterationsUsed).toBe(2);
     expect(result!.finalReviewScore).toBe(85);
-    expect(mockSummaryModelInvoke).toHaveBeenCalledTimes(4);
+    expect(mockStructuredInvoke).toHaveBeenCalledTimes(4);
   });
 
   it('达到最大迭代次数：Reviewer 始终拒绝 → 取最优结果', async () => {
     // 3轮，每轮 reviewer 都拒绝但分数递增
-    mockSummaryModelInvoke
+    mockStructuredInvoke
       .mockResolvedValueOnce(makeSynthesizerResponse(VALID_PROFILE))
       .mockResolvedValueOnce(makeReviewerReject(50))
       .mockResolvedValueOnce(makeSynthesizerResponse(VALID_PROFILE))
@@ -194,9 +190,9 @@ describe('ProfileSynthesisService', () => {
 
   // ─── 容错测试 ────────────────────────────────────────────────────
 
-  it('Synthesizer JSON 解析失败后恢复', async () => {
-    mockSummaryModelInvoke
-      .mockResolvedValueOnce({ content: 'not valid json {{{' })
+  it('Synthesizer 结构化输出失败后恢复', async () => {
+    mockStructuredInvoke
+      .mockRejectedValueOnce(new Error('Structured output validation failed'))
       .mockResolvedValueOnce(makeSynthesizerResponse(VALID_PROFILE))
       .mockResolvedValueOnce(makeReviewerApprove());
 
@@ -207,8 +203,7 @@ describe('ProfileSynthesisService', () => {
     expect(result!.iterationsUsed).toBe(2); // 第2轮成功
   });
 
-  it('Reviewer JSON 解析失败但验证通过时采纳 Synthesizer 结果', async () => {
-    // 使用与 observations 完全匹配的极简 profile，确保验证通过
+  it('Reviewer 结构化输出失败但验证通过时采纳 Synthesizer 结果', async () => {
     const minimalProfile = `## 编码风格
 - 使用 React + TypeScript 技术栈
 
@@ -218,15 +213,13 @@ describe('ProfileSynthesisService', () => {
 ## 沟通方式
 - 暂无
 
-## 项目上下文
-- 暂无
 
 ## 其他习惯
 - 暂无`;
 
-    mockSummaryModelInvoke
+    mockStructuredInvoke
       .mockResolvedValueOnce(makeSynthesizerResponse(minimalProfile))
-      .mockResolvedValueOnce({ content: 'invalid reviewer json' });
+      .mockRejectedValueOnce(new Error('Invalid reviewer output'));
 
     const matchingObservations: ProfileObservation[] = [
       {
@@ -243,16 +236,16 @@ describe('ProfileSynthesisService', () => {
     expect(result!.finalReviewScore).toBe(80);
   });
 
-  it('JSON 连续失败 2 次应中止并返回 null', async () => {
-    mockSummaryModelInvoke
-      .mockResolvedValue({ content: 'garbage {{{[' })
-      .mockResolvedValue({ content: 'more garbage }}}' });
+  it('结构化输出连续失败 2 次应中止并返回 null', async () => {
+    mockStructuredInvoke
+      .mockRejectedValue(new Error('fail 1'))
+      .mockRejectedValue(new Error('fail 2'));
 
     const observations = makeObservations(3);
     const result = await service.synthesize(1, observations);
 
     expect(result).toBeNull();
-    expect(mockSummaryModelInvoke).toHaveBeenCalledTimes(2);
+    expect(mockStructuredInvoke).toHaveBeenCalledTimes(2);
   });
 
   // ─── Profile 版本与存储测试 ──────────────────────────────────────
@@ -267,7 +260,7 @@ describe('ProfileSynthesisService', () => {
       },
     });
 
-    mockSummaryModelInvoke
+    mockStructuredInvoke
       .mockResolvedValueOnce(makeSynthesizerResponse(VALID_PROFILE))
       .mockResolvedValueOnce(makeReviewerApprove());
 
@@ -278,7 +271,7 @@ describe('ProfileSynthesisService', () => {
   });
 
   it('存储的 personalProfile 应包含 diff 和 fact 快照', async () => {
-    mockSummaryModelInvoke
+    mockStructuredInvoke
       .mockResolvedValueOnce(makeSynthesizerResponse(VALID_PROFILE))
       .mockResolvedValueOnce(makeReviewerApprove());
 
