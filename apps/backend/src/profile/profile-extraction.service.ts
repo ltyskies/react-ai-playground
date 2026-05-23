@@ -56,18 +56,12 @@ export class ProfileExtractionService {
 
     const allObservations: ProfileObservation[] = [];
 
-    for (const conversation of conversations) {
-      try {
-        const observations = await this.extractFactsFromConversation(
-          userId,
-          conversation.id,
-        );
-        allObservations.push(...observations);
-      } catch (error) {
-        console.error(
-          `Failed to extract facts from conversation ${conversation.id}:`,
-          error,
-        );
+    const extractResults = await asyncPool(5, conversations, (conversation) =>
+      this.extractFactsFromConversation(userId, conversation.id),
+    );
+    for (const result of extractResults) {
+      if (result !== null) {
+        allObservations.push(...result);
       }
     }
 
@@ -121,46 +115,63 @@ export class ProfileExtractionService {
       ? (user.personalProfile as { content?: string }).content?.trim() || ''
       : '';
 
-    const allObservations: ProfileObservation[] = [];
-
+    // 预先构建所有批次
+    const batches: (typeof newRounds)[] = [];
     for (
       let startIndex = 0;
       startIndex < newRounds.length;
       startIndex += PROFILE_FACT_EXTRACTION_BATCH_ROUNDS
     ) {
-      const batchRounds = newRounds.slice(
-        startIndex,
-        startIndex + PROFILE_FACT_EXTRACTION_BATCH_ROUNDS,
+      batches.push(
+        newRounds.slice(
+          startIndex,
+          startIndex + PROFILE_FACT_EXTRACTION_BATCH_ROUNDS,
+        ),
       );
-
-      try {
-        const response = await this.summaryModel.invoke([
-          new SystemMessage(FACT_EXTRACTOR_SYSTEM_PROMPT),
-          new HumanMessage(
-            buildFactExtractorPrompt(currentProfileSummary, batchRounds),
-          ),
-        ]);
-
-        const result = this.parseObservationJson(
-          this.conversationSummaryService.extractChunkContent(response.content),
-        );
-        if (result) {
-          console.log(
-            `[画像] 会话 ${conversationId} 批次 ${startIndex / PROFILE_FACT_EXTRACTION_BATCH_ROUNDS + 1} 提取 ${result.observations.length} 条事实`,
-          );
-          allObservations.push(...result.observations);
-        } else {
-          console.log(
-            `[画像] 会话 ${conversationId} 批次 ${startIndex / PROFILE_FACT_EXTRACTION_BATCH_ROUNDS + 1} JSON 解析失败`,
-          );
-        }
-      } catch (error) {
-        console.error(
-          `Phase 1 failed for conversation ${conversationId} batch starting at round ${startIndex}:`,
-          error,
-        );
-      }
     }
+
+    // 并发调 LLM 提取所有批次的事实
+    const batchResults = await asyncPool(
+      5,
+      batches,
+      async (batchRounds, batchIndex) => {
+        try {
+          const response = await this.summaryModel.invoke([
+            new SystemMessage(FACT_EXTRACTOR_SYSTEM_PROMPT),
+            new HumanMessage(
+              buildFactExtractorPrompt(currentProfileSummary, batchRounds),
+            ),
+          ]);
+
+          const result = this.parseObservationJson(
+            this.conversationSummaryService.extractChunkContent(
+              response.content,
+            ),
+          );
+          if (result) {
+            console.log(
+              `[画像] 会话 ${conversationId} 批次 ${batchIndex + 1} 提取 ${result.observations.length} 条事实`,
+            );
+            return result.observations;
+          } else {
+            console.log(
+              `[画像] 会话 ${conversationId} 批次 ${batchIndex + 1} JSON 解析失败`,
+            );
+            return [];
+          }
+        } catch (error) {
+          console.error(
+            `Phase 1 failed for conversation ${conversationId} batch ${batchIndex + 1}:`,
+            error,
+          );
+          return [];
+        }
+      },
+    );
+
+    const allObservations: ProfileObservation[] = batchResults
+      .filter((r): r is ProfileObservation[] => r !== null)
+      .flat();
 
     const lastRoundMaxId = this.conversationSummaryService.getRoundMaxMessageId(
       newRounds[newRounds.length - 1],
@@ -221,4 +232,35 @@ export class ProfileExtractionService {
       return null;
     }
   }
+}
+
+/**
+ * 并发执行异步任务池，最多同时运行 limit 个。
+ * 单个任务失败返回 null，不中断其他任务。
+ */
+async function asyncPool<T, R>(
+  limit: number,
+  items: T[],
+  fn: (item: T, index: number) => Promise<R>,
+): Promise<(R | null)[]> {
+  const results = new Array<R | null>(items.length).fill(null);
+  let cursor = 0;
+
+  const worker = async (): Promise<void> => {
+    while (cursor < items.length) {
+      const i = cursor++;
+      try {
+        results[i] = await fn(items[i], i);
+      } catch (err) {
+        console.error(`asyncPool task ${i} failed:`, err);
+        // 保持 null
+      }
+    }
+  };
+
+  const workers = Array.from({ length: Math.min(limit, items.length) }, () =>
+    worker(),
+  );
+  await Promise.all(workers);
+  return results;
 }
