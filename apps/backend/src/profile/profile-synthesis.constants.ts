@@ -4,7 +4,7 @@
  */
 
 /** Synthesize-Review 最大迭代次数 */
-export const MAX_SYNTHESIS_ITERATIONS = 3;
+export const MAX_SYNTHESIS_ITERATIONS = 5;
 
 /** Reviewer 最低批准分数（0-100） */
 export const MIN_APPROVAL_SCORE = 70;

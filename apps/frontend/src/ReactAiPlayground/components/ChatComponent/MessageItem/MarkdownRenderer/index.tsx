@@ -7,17 +7,16 @@
 
 // React 核心库 - memo 和 Hooks 用于性能优化
 import {
-    Component,
     memo,
     useState,
     useEffect,
     useRef,
-    type ErrorInfo,
     type ReactNode,
 } from "react";
 
 // 第三方库 - Markdown 渲染
 import ReactMarkdown from "react-markdown";
+import { ErrorBoundary } from "react-error-boundary";
 
 // 第三方库 - GitHub 风格 Markdown 插件
 import remarkGfm from "remark-gfm";
@@ -55,13 +54,6 @@ interface MarkdownRenderErrorBoundaryProps {
     resetKey: string;
 }
 
-/**
- * Markdown 渲染错误边界状态
- */
-interface MarkdownRenderErrorBoundaryState {
-    hasError: boolean;
-}
-
 /** 流式输出时为未闭合的代码块补上结束标记，避免渲染报错 */
 const getDisplayMarkdown = (content: string, status: StreamStatus) => {
     const shouldFixUnclosedFence = (
@@ -79,45 +71,27 @@ const getDisplayMarkdown = (content: string, status: StreamStatus) => {
 /**
  * Markdown 渲染错误边界
  * @description 捕获 react-markdown 渲染过程中的异常，降级展示原始文本
+ * 使用 react-error-boundary 实现函数式错误边界
  */
-class MarkdownRenderErrorBoundary extends Component<
-    MarkdownRenderErrorBoundaryProps,
-    MarkdownRenderErrorBoundaryState
-> {
-    state: MarkdownRenderErrorBoundaryState = {
-        hasError: false,
-    }
-
-    static getDerivedStateFromError() {
-        return {
-            hasError: true,
-        }
-    }
-
-    componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-        console.error('Markdown renderer crashed.', error, errorInfo);
-    }
-
-    componentDidUpdate(prevProps: MarkdownRenderErrorBoundaryProps) {
-        if (prevProps.resetKey !== this.props.resetKey && this.state.hasError) {
-            this.setState({ hasError: false });
-        }
-    }
-
-    render() {
-        if (this.state.hasError) {
-            return (
+function MarkdownRenderErrorBoundary({ children, content, resetKey }: MarkdownRenderErrorBoundaryProps) {
+    return (
+        <ErrorBoundary
+            resetKeys={[resetKey]}
+            onError={(error, errorInfo) => {
+                console.error('Markdown renderer crashed.', error, errorInfo);
+            }}
+            fallback={
                 <div className={styles.renderFallback}>
                     <div className={styles.renderWarning}>
                         Markdown 渲染异常，已切换为原文显示。
                     </div>
-                    <pre className={styles.rawFallback}>{this.props.content}</pre>
+                    <pre className={styles.rawFallback}>{content}</pre>
                 </div>
-            );
-        }
-
-        return this.props.children;
-    }
+            }
+        >
+            {children}
+        </ErrorBoundary>
+    );
 }
 
 /**
