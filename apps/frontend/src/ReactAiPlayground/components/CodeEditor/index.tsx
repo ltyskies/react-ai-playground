@@ -8,8 +8,8 @@
 import { useContext, useEffect, useRef } from 'react';
 import { debounce } from 'lodash-es';
 
-import Editor from './Editor';
-import FileNameList from './FileNameList';
+import Editor from '@/ReactAiPlayground/components/CodeEditor/Editor';
+import FileNameList from '@/ReactAiPlayground/components/CodeEditor/FileNameList';
 
 import { AIPlaygroundContext } from '@/ReactAiPlayground/AIPlaygroundContext';
 

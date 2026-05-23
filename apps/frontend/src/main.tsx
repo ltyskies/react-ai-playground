@@ -15,7 +15,7 @@ import { RouterProvider } from 'react-router'
 import { ConfigProvider } from 'antd'
 
 // 项目内部模块 - 路由配置
-import router from './router/index.tsx'
+import router from '@/router/index.tsx'
 
 /**
  * 创建 React 根节点并渲染应用

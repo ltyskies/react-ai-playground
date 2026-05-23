@@ -6,7 +6,7 @@
  */
 
 // 样式文件
-import styles from './index.module.scss';
+import styles from '@/ReactAiPlayground/components/Skeleton/CodeEditorSkeleton/index.module.scss';
 
 /**
  * 代码编辑器骨架屏组件

@@ -5,11 +5,11 @@
  */
 
 import { createContext, useEffect, useState, type PropsWithChildren } from 'react';
-import { compress, fileName2Language, uncompress } from './utils';
+import { compress, fileName2Language, uncompress } from '@/ReactAiPlayground/utils';
 import {
     APP_COMPONENT_FILE_NAME,
     initFiles,
-} from './files';
+} from '@/ReactAiPlayground/files';
 
 export interface File {
     name: string

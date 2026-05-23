@@ -11,8 +11,8 @@ import { AIPlaygroundContext, type Files } from '@/ReactAiPlayground/AIPlaygroun
 import { Message } from '@/ReactAiPlayground/components/Message';
 import { IMPORT_MAP_FILE_NAME } from '@/ReactAiPlayground/files';
 
-import iframeRaw from './iframe.html?raw';
-import CompilerWorker from './compiler.worker?worker';
+import iframeRaw from '@/ReactAiPlayground/components/Preview/iframe.html?raw';
+import CompilerWorker from '@/ReactAiPlayground/components/Preview/compiler.worker?worker';
 
 /**
  * 发送给编译 Worker 的请求格式

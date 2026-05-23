@@ -15,7 +15,7 @@ import { Button, Result } from 'antd';
 import { useNavigate } from 'react-router';
 
 // 样式文件
-import styles from './index.module.scss';
+import styles from '@/notFound/index.module.scss';
 
 /**
  * 404 页面组件

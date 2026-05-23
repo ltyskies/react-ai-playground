@@ -12,7 +12,7 @@ import { oneLight as prismTheme } from 'react-syntax-highlighter/dist/esm/styles
 
 import { AIPlaygroundContext } from '@/ReactAiPlayground/AIPlaygroundContext';
 
-import styles from './index.module.scss';
+import styles from '@/ReactAiPlayground/components/ChatComponent/MessageItem/MarkdownRenderer/CodeBlock/index.module.scss';
 
 /**
  * 代码块组件属性

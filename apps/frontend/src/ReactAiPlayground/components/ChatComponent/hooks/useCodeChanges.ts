@@ -8,8 +8,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Files } from '@/ReactAiPlayground/AIPlaygroundContext';
 import type { Message } from '@/store/chatStore';
-import type { CodeChange } from './CodeChangesPanel';
-import { extractAutoApplicableCodeBlocks } from '../utils/codeBlockUtils';
+import type { CodeChange } from '@/ReactAiPlayground/components/ChatComponent/CodeChangesPanel';
+import { extractAutoApplicableCodeBlocks } from '@/ReactAiPlayground/components/ChatComponent/utils/codeBlockUtils';
 
 /** 从 AI 回复中提取的代码变更摘要类型 */
 type ExtractedCodeChange = Pick<CodeChange, 'fileName' | 'oldValue' | 'newValue' | 'applied' | 'isNewFile'>

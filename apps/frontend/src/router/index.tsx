@@ -21,7 +21,7 @@ import { AIPlaygroundProvider } from "@/ReactAiPlayground/AIPlaygroundContext";
 import ReactAiPlayground from "@/ReactAiPlayground";
 
 // 样式文件
-import './index.module.scss'; 
+import '@/router/index.module.scss'; 
 
 /**
  * 创建浏览器路由配置

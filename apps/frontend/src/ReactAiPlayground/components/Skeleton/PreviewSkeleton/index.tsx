@@ -6,7 +6,7 @@
  */
 
 // 样式文件
-import styles from './index.module.scss';
+import styles from '@/ReactAiPlayground/components/Skeleton/PreviewSkeleton/index.module.scss';
 
 /**
  * 代码预览骨架屏组件

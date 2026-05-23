@@ -10,9 +10,9 @@ import { useContext, useEffect, useState } from 'react';
 import { AIPlaygroundContext } from '@/ReactAiPlayground/AIPlaygroundContext';
 import { APP_COMPONENT_FILE_NAME, ENTRY_FILE_NAME, IMPORT_MAP_FILE_NAME } from '@/ReactAiPlayground/files';
 
-import { FileNameItem } from './FileNameItem';
+import { FileNameItem } from '@/ReactAiPlayground/components/CodeEditor/FileNameList/FileNameItem';
 
-import styles from './index.module.scss';
+import styles from '@/ReactAiPlayground/components/CodeEditor/FileNameList/index.module.scss';
 
 /**
  * 文件标签列表组件

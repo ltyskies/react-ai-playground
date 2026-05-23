@@ -12,7 +12,7 @@ import classnames from 'classnames'
 import React, { useState, useRef, useEffect } from 'react'
 
 // 样式文件
-import styles from './index.module.scss'
+import styles from '@/ReactAiPlayground/components/CodeEditor/FileNameList/index.module.scss'
 
 // Ant Design 组件 - 确认弹窗
 import { Popconfirm } from 'antd'

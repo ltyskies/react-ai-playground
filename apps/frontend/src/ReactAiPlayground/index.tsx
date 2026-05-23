@@ -6,19 +6,19 @@
 
 import { Allotment } from "allotment";
 import "allotment/dist/style.css";
-import "./index.scss";
+import "@/ReactAiPlayground/index.scss";
 
 import { lazy, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { debounce } from "lodash-es";
 import { useNavigate } from "react-router";
 
-import Header from "./components/Header";
+import Header from "@/ReactAiPlayground/components/Header";
 import {
     AIPlaygroundContext,
     createTemplateWorkspace,
     getWorkspaceFromUrl,
     type ConversationWorkspace,
-} from "./AIPlaygroundContext";
+} from "@/ReactAiPlayground/AIPlaygroundContext";
 import {
     createNewConversationAPI,
     getConversationDetailAPI,
@@ -29,13 +29,13 @@ import {
 } from "@/apis/chat";
 import { useChatStore, type Message as ChatMessage } from "@/store/chatStore";
 
-import CodeEditorSkeleton from "./components/Skeleton/CodeEditorSkeleton";
-import PreviewSkeleton from "./components/Skeleton/PreviewSkeleton";
-import ChatSkeleton from "./components/Skeleton/ChatSkeleton";
+import CodeEditorSkeleton from "@/ReactAiPlayground/components/Skeleton/CodeEditorSkeleton";
+import PreviewSkeleton from "@/ReactAiPlayground/components/Skeleton/PreviewSkeleton";
+import ChatSkeleton from "@/ReactAiPlayground/components/Skeleton/ChatSkeleton";
 
-const CodeEditor = lazy(() => import("./components/CodeEditor"));
-const Preview = lazy(() => import("./components/Preview"));
-const ChatComponent = lazy(() => import("./components/ChatComponent"));
+const CodeEditor = lazy(() => import("@/ReactAiPlayground/components/CodeEditor"));
+const Preview = lazy(() => import("@/ReactAiPlayground/components/Preview"));
+const ChatComponent = lazy(() => import("@/ReactAiPlayground/components/ChatComponent"));
 
 /**
  * 从 URL 查询参数中解析会话 ID

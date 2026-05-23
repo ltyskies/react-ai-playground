@@ -23,13 +23,13 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 import type { StreamStatus } from "@/apis/chat";
-import { extractCodeBlockFileName } from "../../utils/codeBlockUtils";
+import { extractCodeBlockFileName } from "@/ReactAiPlayground/components/ChatComponent/utils/codeBlockUtils";
 
 // 项目内部组件 - 代码块组件
-import CodeBlock from "./CodeBlock";
+import CodeBlock from "@/ReactAiPlayground/components/ChatComponent/MessageItem/MarkdownRenderer/CodeBlock";
 
 // 样式文件
-import styles from './index.module.scss';
+import styles from '@/ReactAiPlayground/components/ChatComponent/MessageItem/MarkdownRenderer/index.module.scss';
 
 /**
  * Markdown 渲染组件属性接口

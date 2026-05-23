@@ -9,7 +9,7 @@
 import MonacoEditor, { type OnMount, type EditorProps } from '@monaco-editor/react'
 
 // 项目内部模块 - 自动类型获取
-import { createATA } from './ata';
+import { createATA } from '@/ReactAiPlayground/components/CodeEditor/Editor/ata';
 
 // Monaco Editor 核心类型
 import { editor } from 'monaco-editor'

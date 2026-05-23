@@ -25,7 +25,7 @@ import { diffLines } from 'diff';
 import { AIPlaygroundContext, type File } from '@/ReactAiPlayground/AIPlaygroundContext';
 
 // 样式文件
-import styles from './index.module.scss';
+import styles from '@/ReactAiPlayground/components/ChatComponent/CodeChangesPanel/index.module.scss';
 
 /**
  * 代码变更数据结构

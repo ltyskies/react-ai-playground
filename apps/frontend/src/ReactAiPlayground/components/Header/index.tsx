@@ -21,10 +21,10 @@ import {
 import { Popconfirm, message } from 'antd';
 
 // 项目内部资源
-import logoSvg from './icons/logo.svg';
+import logoSvg from '@/ReactAiPlayground/components/Header/icons/logo.svg';
 
 // 样式文件
-import styles from './index.module.scss';
+import styles from '@/ReactAiPlayground/components/Header/index.module.scss';
 
 // 项目内部模块
 import { AIPlaygroundContext } from '@/ReactAiPlayground/AIPlaygroundContext';

@@ -15,7 +15,7 @@ import { saveAs } from "file-saver"
 import JSZip from "jszip"
 
 // 项目内部模块 - 类型定义
-import type { Files } from "./AIPlaygroundContext"
+import type { Files } from "@/ReactAiPlayground/AIPlaygroundContext"
 
 /**
  * 根据文件名获取语言类型

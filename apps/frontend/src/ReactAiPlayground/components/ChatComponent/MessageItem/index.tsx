@@ -9,10 +9,10 @@ import { memo } from 'react';
 import { Bot, RotateCcw, User } from 'lucide-react';
 
 import type { Message } from '@/store/chatStore';
-import { hasExtractableCodeBlock } from '../utils/codeBlockUtils';
-import MarkdownRenderer from './MarkdownRenderer';
+import { hasExtractableCodeBlock } from '@/ReactAiPlayground/components/ChatComponent/utils/codeBlockUtils';
+import MarkdownRenderer from '@/ReactAiPlayground/components/ChatComponent/MessageItem/MarkdownRenderer';
 
-import styles from './index.module.scss';
+import styles from '@/ReactAiPlayground/components/ChatComponent/MessageItem/index.module.scss';
 
 /** 将流式状态枚举值映射为中文展示标签 */
 const getStatusLabel = (status: Message['status']) => {

@@ -16,15 +16,15 @@ import {
     AIPlaygroundContext,
     type ConversationWorkspace,
 } from '@/ReactAiPlayground/AIPlaygroundContext';
-import { useFilePicker } from './hooks/useFilePicker';
-import { useChatStream } from './hooks/useChatStream';
-import { useCodeChanges } from './hooks/useCodeChanges';
-import { useFixCompilerError } from './hooks/useFixCompilerError';
+import { useFilePicker } from '@/ReactAiPlayground/components/ChatComponent/hooks/useFilePicker';
+import { useChatStream } from '@/ReactAiPlayground/components/ChatComponent/hooks/useChatStream';
+import { useCodeChanges } from '@/ReactAiPlayground/components/ChatComponent/hooks/useCodeChanges';
+import { useFixCompilerError } from '@/ReactAiPlayground/components/ChatComponent/hooks/useFixCompilerError';
 
-import styles from './index.module.scss';
+import styles from '@/ReactAiPlayground/components/ChatComponent/index.module.scss';
 
-const CodeChangesPanel = React.lazy(() => import('./CodeChangesPanel'));
-const MessageItem = React.lazy(() => import('./MessageItem'));
+const CodeChangesPanel = React.lazy(() => import('@/ReactAiPlayground/components/ChatComponent/CodeChangesPanel'));
+const MessageItem = React.lazy(() => import('@/ReactAiPlayground/components/ChatComponent/MessageItem'));
 
 /**
  * Chat 组件外部属性

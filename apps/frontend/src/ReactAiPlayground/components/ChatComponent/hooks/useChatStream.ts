@@ -17,7 +17,7 @@ import {
     STREAM_IDLE_TIMEOUT_MS,
     EVENT_STREAM_CONTENT_TYPE,
     type StreamErrorPayload,
-} from '../utils/sseParser';
+} from '@/ReactAiPlayground/components/ChatComponent/utils/sseParser';
 
 /** 提交聊天的附加选项 */
 export interface SubmitChatOptions {

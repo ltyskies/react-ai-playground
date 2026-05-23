@@ -22,7 +22,7 @@ import { useNavigate } from 'react-router';
 import { setToken } from '@/utils/token';
 
 // 样式文件
-import styles from './index.module.scss';
+import styles from '@/login/index.module.scss';
 
 // 项目内部模块 - 用户状态管理
 import useUserStore from '@/store/userStore';

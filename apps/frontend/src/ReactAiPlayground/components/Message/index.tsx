@@ -12,7 +12,7 @@ import classnames from 'classnames'
 import React, { useEffect, useState } from 'react'
 
 // 样式文件
-import styles from './index.module.scss'
+import styles from '@/ReactAiPlayground/components/Message/index.module.scss'
 
 // 项目内部 Context - AI Playground 全局状态
 import { AIPlaygroundContext } from '@/ReactAiPlayground/AIPlaygroundContext'

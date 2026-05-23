@@ -6,10 +6,10 @@
  */
 
 // HTTP 请求封装
-import { request } from './request'
+import { request } from '@/utils/request'
 
 // Token 管理函数
-import { setToken, getToken, removeToken } from './token'
+import { setToken, getToken, removeToken } from '@/utils/token'
 
 /**
  * 统一导出所有工具函数

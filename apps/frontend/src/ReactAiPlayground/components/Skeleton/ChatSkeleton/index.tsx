@@ -6,7 +6,7 @@
  */
 
 // 样式文件
-import styles from './index.module.scss';
+import styles from '@/ReactAiPlayground/components/Skeleton/ChatSkeleton/index.module.scss';
 
 /**
  * AI 聊天面板骨架屏组件

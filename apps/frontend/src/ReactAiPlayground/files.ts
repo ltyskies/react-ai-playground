@@ -6,16 +6,16 @@
  */
 
 // 项目内部模块 - 类型定义
-import type { Files } from './AIPlaygroundContext'
+import type { Files } from '@/ReactAiPlayground/AIPlaygroundContext'
 
 // 默认模板文件 - 使用 ?raw 后缀作为字符串导入
-import importMap from './template/import-map.json?raw'
-import AppCss from './template/App.css?raw'
-import App from './template/App.tsx?raw'
-import main from './template/main.tsx?raw'
+import importMap from '@/ReactAiPlayground/template/import-map.json?raw'
+import AppCss from '@/ReactAiPlayground/template/App.css?raw'
+import App from '@/ReactAiPlayground/template/App.tsx?raw'
+import main from '@/ReactAiPlayground/template/main.tsx?raw'
 
 // 项目内部模块 - 工具函数
-import { fileName2Language } from './utils'
+import { fileName2Language } from '@/ReactAiPlayground/utils'
 
 /**
  * App 组件文件名

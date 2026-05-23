@@ -15,7 +15,7 @@ import {
 } from '@ant-design/icons';
 import { Button, Empty, Input, Modal, Spin, message } from 'antd';
 
-import styles from './index.module.scss';
+import styles from '@/userCenter/index.module.scss';
 import {
     deleteConversationAPI,
     getConversationListAPI,
