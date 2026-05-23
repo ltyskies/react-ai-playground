@@ -9,7 +9,7 @@ import { memo } from 'react';
 import { Bot, RotateCcw, User } from 'lucide-react';
 
 import type { Message } from '@/store/chatStore';
-import { hasExtractableCodeBlock } from '../codeBlockUtils';
+import { hasExtractableCodeBlock } from '../utils/codeBlockUtils';
 import MarkdownRenderer from './MarkdownRenderer';
 
 import styles from './index.module.scss';

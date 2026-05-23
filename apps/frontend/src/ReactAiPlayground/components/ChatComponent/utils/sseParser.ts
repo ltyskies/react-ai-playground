@@ -1,5 +1,5 @@
 /**
- * @file src/ReactAiPlayground/components/ChatComponent/sseParser.ts
+ * @file src/ReactAiPlayground/components/ChatComponent/utils/sseParser.ts
  * @description SSE 事件解析工具（纯函数，无 React 依赖）
  * 负责解析服务端 text/event-stream 响应，提取事件名和数据
  * @author React AI Playground

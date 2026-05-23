@@ -1,5 +1,5 @@
 /**
- * @file src/ReactAiPlayground/components/ChatComponent/useCodeChanges.ts
+ * @file src/ReactAiPlayground/components/ChatComponent/hooks/useCodeChanges.ts
  * @description 代码变更管理 hook
  * 管理 AI 回复中代码变更的自动提取、应用和撤销操作
  * @author React AI Playground
@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Files } from '@/ReactAiPlayground/AIPlaygroundContext';
 import type { Message } from '@/store/chatStore';
 import type { CodeChange } from './CodeChangesPanel';
-import { extractAutoApplicableCodeBlocks } from './codeBlockUtils';
+import { extractAutoApplicableCodeBlocks } from '../utils/codeBlockUtils';
 
 /** 从 AI 回复中提取的代码变更摘要类型 */
 type ExtractedCodeChange = Pick<CodeChange, 'fileName' | 'oldValue' | 'newValue' | 'applied' | 'isNewFile'>

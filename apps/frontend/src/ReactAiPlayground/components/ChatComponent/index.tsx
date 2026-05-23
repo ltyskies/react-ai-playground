@@ -16,10 +16,10 @@ import {
     AIPlaygroundContext,
     type ConversationWorkspace,
 } from '@/ReactAiPlayground/AIPlaygroundContext';
-import { useFilePicker } from './useFilePicker';
-import { useChatStream } from './useChatStream';
-import { useCodeChanges } from './useCodeChanges';
-import { useFixCompilerError } from './useFixCompilerError';
+import { useFilePicker } from './hooks/useFilePicker';
+import { useChatStream } from './hooks/useChatStream';
+import { useCodeChanges } from './hooks/useCodeChanges';
+import { useFixCompilerError } from './hooks/useFixCompilerError';
 
 import styles from './index.module.scss';
 

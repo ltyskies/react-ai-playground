@@ -1,5 +1,5 @@
 /**
- * @file src/ReactAiPlayground/components/ChatComponent/useChatStream.ts
+ * @file src/ReactAiPlayground/components/ChatComponent/hooks/useChatStream.ts
  * @description 流式聊天请求 hook
  * 管理 fetch + SSE 流读取 + 空闲超时 + 错误处理的完整生命周期
  * @author React AI Playground
@@ -17,7 +17,7 @@ import {
     STREAM_IDLE_TIMEOUT_MS,
     EVENT_STREAM_CONTENT_TYPE,
     type StreamErrorPayload,
-} from './sseParser';
+} from '../utils/sseParser';
 
 /** 提交聊天的附加选项 */
 export interface SubmitChatOptions {

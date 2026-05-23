@@ -23,7 +23,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 import type { StreamStatus } from "@/apis/chat";
-import { extractCodeBlockFileName } from "../../codeBlockUtils";
+import { extractCodeBlockFileName } from "../../utils/codeBlockUtils";
 
 // 项目内部组件 - 代码块组件
 import CodeBlock from "./CodeBlock";

@@ -1,5 +1,5 @@
 /**
- * @file src/ReactAiPlayground/components/ChatComponent/useFixCompilerError.ts
+ * @file src/ReactAiPlayground/components/ChatComponent/hooks/useFixCompilerError.ts
  * @description 全局 fix-compiler-error 事件监听 hook
  * 监听编译报错事件并自动生成修复追问发送到聊天接口
  * @author React AI Playground

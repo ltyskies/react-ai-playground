@@ -1,5 +1,5 @@
 /**
- * @file src/ReactAiPlayground/components/ChatComponent/codeBlockUtils.ts
+ * @file src/ReactAiPlayground/components/ChatComponent/utils/codeBlockUtils.ts
  * @description 代码块解析工具
  * 统一处理聊天消息里的 fenced code block 元信息，供渲染和自动应用共用
  * @author React AI Playground

@@ -1,5 +1,5 @@
 /**
- * @file src/ReactAiPlayground/components/ChatComponent/useFilePicker.ts
+ * @file src/ReactAiPlayground/components/ChatComponent/hooks/useFilePicker.ts
  * @description 文件选择器状态管理 hook
  * 管理上下文文件选择器的弹出/关闭状态及点击外部关闭行为
  * @author React AI Playground
