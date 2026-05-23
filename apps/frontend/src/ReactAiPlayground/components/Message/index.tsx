@@ -73,7 +73,6 @@ export const Message: React.FC<MessageProps> = (props) => {
                 <button
                     className={styles.fixBtn}
                     onClick={handleFixClick}
-                    style={{ marginRight: '10px', cursor: 'pointer' }}
                 >
                     ✨ 一键纠错
                 </button>
