@@ -88,7 +88,7 @@ function splitSections(profile: string): Map<string, string> {
 /**
  * 验证画像 Markdown 结构是否合法
  * - 画像长度 >= MIN_PROFILE_LENGTH
- * - 5 个标准 section 标题完整存在
+ * - 4 个标准 section 标题完整存在
  * - 每个 section 有实际内容
  * - 无多余顶级标题
  */

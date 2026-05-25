@@ -10,6 +10,8 @@ out/
 .DS_Store
 coverage/
 .claude
+.agents
+skills-lock.json
 AI_WORK_LOG.md
 CLAUDE.md
 project.md
