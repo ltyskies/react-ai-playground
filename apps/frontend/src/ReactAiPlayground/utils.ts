@@ -5,9 +5,6 @@
  * @author React AI Playground
  */
 
-// 第三方库 - 压缩解压
-import { strFromU8, strToU8, unzlibSync, zlibSync } from "fflate"
-
 // 第三方库 - 文件保存
 import { saveAs } from "file-saver"
 
@@ -33,40 +30,6 @@ export const fileName2Language = (name: string) => {
     if (['css'].includes(suffix)) return 'css'
     // 默认返回 javascript
     return 'javascript'
-}
-
-/**
- * 压缩字符串数据
- * 使用 zlib 压缩，然后转为 Base64
- * @param data - 要压缩的字符串
- * @returns 压缩后的 Base64 字符串
- */
-export function compress(data: string): string {
-    // 字符串转为 Uint8Array
-    const buffer = strToU8(data)
-    // zlib 压缩（最高压缩级别）
-    const zipped = zlibSync(buffer, { level: 9 })
-    // 转为字符串
-    const str = strFromU8(zipped, true)
-    // Base64 编码
-    return btoa(str)
-}
-
-/**
- * 解压字符串数据
- * 将 Base64 字符串解压为原始字符串
- * @param base64 - 压缩后的 Base64 字符串
- * @returns 解压后的原始字符串
- */
-export function uncompress(base64: string): string {
-    // Base64 解码
-    const binary = atob(base64)
-    // 转为 Uint8Array
-    const buffer = strToU8(binary, true)
-    // zlib 解压
-    const unzipped = unzlibSync(buffer)
-    // 转为字符串
-    return strFromU8(unzipped)
 }
 
 /**

@@ -10,10 +10,15 @@ import { useState, useRef, useEffect } from 'react';
 export const useFilePicker = () => {
     const [showFilePicker, setShowFilePicker] = useState(false);
     const pickerRef = useRef<HTMLDivElement>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
+            const target = event.target as Node;
+            // 下拉框通过 Portal 渲染到 body，不在 pickerRef 内，需单独判断
+            const clickInsidePicker = pickerRef.current?.contains(target);
+            const clickInsideDropdown = dropdownRef.current?.contains(target);
+            if (!clickInsidePicker && !clickInsideDropdown) {
                 setShowFilePicker(false);
             }
         };
@@ -21,5 +26,5 @@ export const useFilePicker = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    return { showFilePicker, setShowFilePicker, pickerRef };
+    return { showFilePicker, setShowFilePicker, pickerRef, dropdownRef };
 };

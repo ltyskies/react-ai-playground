@@ -12,7 +12,7 @@ export const useFixCompilerError = (submitChat: (text: string) => Promise<boolea
         const handleFixError = (e: Event) => {
             const customEvent = e as CustomEvent;
             const errorText = customEvent.detail.content;
-            const prompt = `I ran into the following compiler error. Please fix it using the current file context:\n\n${errorText}`;
+            const prompt = `我遇到了以下编译错误，请结合当前文件上下文修复它：\n\n${errorText}`;
             void submitChat(prompt);
         };
         window.addEventListener('fix-compiler-error', handleFixError);

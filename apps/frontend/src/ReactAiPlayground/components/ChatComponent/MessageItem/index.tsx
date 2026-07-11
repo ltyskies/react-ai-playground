@@ -8,8 +8,7 @@
 import { memo } from 'react';
 import { Bot, RotateCcw, User } from 'lucide-react';
 
-import type { Message } from '@/store/chatStore';
-import { hasExtractableCodeBlock } from '@/ReactAiPlayground/components/ChatComponent/utils/codeBlockUtils';
+import { type Message } from '@/store/chatStore';
 import MarkdownRenderer from '@/ReactAiPlayground/components/ChatComponent/MessageItem/MarkdownRenderer';
 
 import styles from '@/ReactAiPlayground/components/ChatComponent/MessageItem/index.module.scss';
@@ -53,13 +52,6 @@ interface MessageItemProps {
  */
 const MessageItem = memo(({ msg, isTyping, isLast, retryDisabled = false, onRetry }: MessageItemProps) => {
     const showTypingCursor = isTyping && isLast && msg.role === 'assistant' && msg.status === 'pending'
-    // 代码块存在但不满足自动提取协议时，给用户一个轻提示。
-    const showCodeBlockProtocolTip = (
-        msg.role === 'assistant' &&
-        msg.status === 'completed' &&
-        msg.content.includes('```') &&
-        !hasExtractableCodeBlock(msg.content)
-    )
     const canRetry = (
         msg.role === 'assistant' &&
         !!msg.requestId &&
@@ -81,13 +73,11 @@ const MessageItem = memo(({ msg, isTyping, isLast, retryDisabled = false, onRetr
 
             <div className={styles.messageBubble}>
                 <MarkdownRenderer content={msg.content} status={msg.status} />
-                {showCodeBlockProtocolTip && (
-                    <div className={styles.protocolTip}>
-                        检测到代码块，但未满足自动提取格式，仅可手动复制或应用。
-                    </div>
-                )}
                 {showTypingCursor && (
-                    <span className={styles.typingCursor} />
+                    <div className={styles.stageIndicator}>
+                        <span className={styles.typingCursor} />
+                        <span className={styles.stageText}>思考中…</span>
+                    </div>
                 )}
                 {showStatusMeta && (
                     <div className={styles.messageMeta}>

@@ -23,8 +23,8 @@
 }
 
 .chatHeader {
-  min-height: 68px;
-  padding: 16px 20px;
+  min-height: 48px;
+  padding: 8px 20px;
   background: var(--color-bg-base);
   border-bottom: 1px solid var(--color-border-secondary);
   flex-shrink: 0;
@@ -36,7 +36,7 @@
 
 .chatHeader h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: 14px;
   line-height: 1.2;
   font-weight: 600;
   color: var(--color-text-primary);
@@ -47,11 +47,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border: 1px solid var(--color-border);
   background: var(--color-bg-base);
-  border-radius: var(--radius-md);
+  border-radius: 999px;
   cursor: pointer;
   color: var(--color-text-secondary);
   transition: all var(--transition-base);
@@ -62,7 +62,7 @@
 .changesBtn:hover {
   background: var(--color-bg-layout);
   border-color: var(--color-border);
-  color: var(--color-text-primary);
+  color: var(--color-primary);
 }
 
 .changesBtn.hasChanges {
@@ -126,11 +126,14 @@
       align-items: center;
       gap: 6px;
       background: var(--color-primary-bg);
-      border: 1px solid #bae0ff;
+      border: 1px solid transparent;
       color: var(--color-primary-active);
       padding: 4px 10px;
-      border-radius: var(--radius-sm);
+      border-radius: 999px;
       font-size: var(--font-size-sm);
+      transition: all var(--transition-fast);
+
+      &:hover { border-color: var(--color-primary); }
 
       .fileName { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .removeBtn {
@@ -138,6 +141,12 @@
         display: flex; align-items: center; padding: 0;
         &:hover { color: var(--color-error); }
       }
+    }
+
+    .moreCount {
+      color: var(--color-text-tertiary);
+      font-size: var(--font-size-sm);
+      padding: 4px 4px;
     }
 
     .filePickerContainer {
@@ -150,40 +159,12 @@
         background: var(--color-bg-base);
         border: 1px dashed var(--color-border);
         padding: 4px 12px;
-        border-radius: var(--radius-sm);
+        border-radius: 999px;
         font-size: var(--font-size-sm);
         color: var(--color-text-secondary);
         cursor: pointer;
         transition: all var(--transition-base);
-        &:hover { border-color: var(--color-success); color: var(--color-success); background: var(--color-success-bg); }
-      }
-
-      .filePickerDropdown {
-        position: absolute;
-        bottom: calc(100% + 10px);
-        left: 0;
-        background: var(--color-bg-base);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-lg);
-        z-index: 1000;
-        min-width: 200px;
-        padding: 6px;
-        max-height: 300px;
-        overflow-y: auto;
-
-        .dropdownHeader { font-size: 11px; color: var(--color-text-tertiary); padding: 4px 10px; }
-        .dropdownItem {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 8px 10px;
-          font-size: var(--font-size-base);
-          cursor: pointer;
-          border-radius: var(--radius-sm);
-          &:hover { background: var(--color-bg-layout); }
-          &.selected { color: var(--color-text-quaternary); cursor: not-allowed; }
-        }
+        &:hover { border-color: var(--color-primary); color: var(--color-primary); background: var(--color-primary-bg); }
       }
     }
   }
@@ -192,20 +173,22 @@
     position: relative;
     background: var(--color-bg-layout);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    padding: 10px;
+    border-radius: var(--radius-xl);
+    padding: 6px 8px 6px 14px;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     transition: all var(--transition-base);
 
-    &:focus-within { background: var(--color-bg-base); border-color: var(--color-success); box-shadow: 0 0 0 2px rgba(16, 163, 127, 0.1); }
+    &:focus-within { background: var(--color-bg-base); border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-bg); }
 
     textarea {
       flex: 1;
+      display: block;
       border: none; outline: none; background: transparent;
-      padding: 0 8px;
-      font-size: 15px; line-height: 1.5;
+      padding: 6px 8px;
+      font-size: 15px; line-height: 20px;
       resize: none;
+      min-height: 32px;
       max-height: 150px;
       overflow-y: auto;
       color: var(--color-text-primary);
@@ -217,15 +200,44 @@
       align-items: center;
       margin-left: 4px;
       .actionButton {
-        width: 32px; height: 32px; border-radius: var(--radius-md); border: none;
+        width: 32px; height: 32px; border-radius: 999px; border: none;
         display: flex; align-items: center; justify-content: center;
         cursor: pointer;
-        transition: background var(--transition-base);
-        &.sendBtn { background: var(--color-success); color: #fff; &:disabled { background: var(--color-border); color: #acacac; cursor: default; } }
+        transition: all var(--transition-base);
+        &.sendBtn { background: var(--color-primary); color: #fff; &:disabled { background: var(--color-border); color: var(--color-text-quaternary); cursor: default; } }
         &.stopBtn { background: var(--color-text-primary); color: #fff; }
-        &:hover:not(:disabled) { opacity: 0.9; }
+        &:hover:not(:disabled) { transform: scale(1.05); opacity: 0.92; }
       }
     }
+  }
+}
+
+// 上下文文件选择下拉框（通过 Portal 渲染到 body，避免被工作区面板遮挡/裁剪）
+.filePickerDropdown {
+  position: fixed;
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  min-width: 200px;
+  padding: 6px;
+  max-height: 300px;
+  overflow-y: auto;
+
+  .dropdownHeader { font-size: 11px; color: var(--color-text-tertiary); padding: 4px 10px; }
+  .dropdownItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    font-size: var(--font-size-base);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    &:hover { background: var(--color-bg-layout); }
+    &.selected { color: var(--color-primary); background: var(--color-primary-bg); }
+
+    .checkIcon { margin-left: auto; color: var(--color-primary); flex-shrink: 0; }
   }
 }
 

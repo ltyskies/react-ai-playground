@@ -12,6 +12,7 @@ import { ConversationSummaryService } from './services/conversation-summary.serv
 import { ProfileExtractionService } from '../profile/profile-extraction.service';
 import { StreamGenerationService } from './services/stream-generation.service';
 import type { ConversationWorkspace } from './types/conversation-workspace.type';
+import type { GenerationEvent } from './types/generation-event.type';
 
 interface GenerateStreamOptions {
   signal?: AbortSignal;
@@ -92,7 +93,7 @@ export class ChatService {
     workspace: ConversationWorkspace,
     requestId: string,
     options: GenerateStreamOptions = {},
-  ): Promise<AsyncGenerator<string>> {
+  ): Promise<AsyncGenerator<GenerationEvent>> {
     return this.streamGenerationService.generateStream(
       userId,
       conversationId,

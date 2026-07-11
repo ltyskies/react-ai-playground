@@ -16,10 +16,12 @@ import { ConversationRuntimeMemoryService } from '../conversation-runtime-memory
 import { Conversation } from '../entities/conversation.entity';
 import { getDisplayContent } from '../prompts';
 import type { ConversationRuntimeMessage } from '../types/conversation-runtime-memory.type';
+import type { PersistedCodeChange } from '../types/generation-event.type';
 
 export interface SaveMessageOptions {
   requestId?: string | null;
   streamStatus?: StreamStatus;
+  codeChanges?: PersistedCodeChange[] | null;
 }
 
 @Injectable()
@@ -64,6 +66,7 @@ export class MessageService {
       role,
       requestId: options.requestId ?? null,
       streamStatus: options.streamStatus ?? StreamStatus.COMPLETED,
+      codeChanges: options.codeChanges ?? null,
     });
     return this.messageRepo.save(message);
   }
@@ -121,6 +124,7 @@ export class MessageService {
     conversationId: number,
     requestId: string,
     content: string,
+    codeChanges: PersistedCodeChange[] = [],
   ): Promise<ConversationRuntimeMessage> {
     const history = await this.getConversationRuntimeMessages(conversationId);
     const existingAssistantMessage = this.findMessageByRequestId(
@@ -128,6 +132,8 @@ export class MessageService {
       requestId,
       MessageRole.ASSISTANT,
     );
+
+    const codeChangesValue = codeChanges.length > 0 ? codeChanges : null;
 
     if (existingAssistantMessage?.streamStatus === StreamStatus.COMPLETED) {
       return existingAssistantMessage;
@@ -137,6 +143,7 @@ export class MessageService {
       const updatedAssistantMessage = await this.messageRepo.save({
         ...existingAssistantMessage,
         content,
+        codeChanges: codeChangesValue,
         streamStatus: StreamStatus.COMPLETED,
       });
       const runtimeMessage = this.toRuntimeMessage(updatedAssistantMessage);
@@ -148,11 +155,29 @@ export class MessageService {
       conversationId,
       content,
       MessageRole.ASSISTANT,
-      { requestId, streamStatus: StreamStatus.COMPLETED },
+      {
+        requestId,
+        streamStatus: StreamStatus.COMPLETED,
+        codeChanges: codeChangesValue,
+      },
     );
     const runtimeMessage = this.toRuntimeMessage(savedAssistantMessage);
     this.conversationRuntimeMemoryService.upsertMessage(runtimeMessage);
     return runtimeMessage;
+  }
+
+  /** 读取已落库的助手消息实体（含 codeChanges），供历史回放使用 */
+  async getAssistantMessageEntity(
+    conversationId: number,
+    requestId: string,
+  ): Promise<Message | null> {
+    return this.messageRepo.findOne({
+      where: {
+        conversationId,
+        requestId,
+        role: MessageRole.ASSISTANT,
+      },
+    });
   }
 
   /** 按 requestId 查找消息 */

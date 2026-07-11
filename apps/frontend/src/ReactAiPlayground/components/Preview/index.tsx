@@ -5,9 +5,10 @@
  * @author React AI Playground
  */
 
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-import { AIPlaygroundContext, type Files } from '@/ReactAiPlayground/AIPlaygroundContext';
+import { usePlaygroundStore } from '@/store/playgroundStore';
+import { type Files } from '@/ReactAiPlayground/AIPlaygroundContext';
 import { Message } from '@/ReactAiPlayground/components/Message';
 import { IMPORT_MAP_FILE_NAME } from '@/ReactAiPlayground/files';
 
@@ -57,7 +58,7 @@ const isPreviewMessageData = (data: unknown): data is PreviewMessageData => {
 };
 
 export default function Preview() {
-    const { files } = useContext(AIPlaygroundContext);
+    const files = usePlaygroundStore((state) => state.files);
 
     const [compiledCode, setCompiledCode] = useState('');
     const [error, setError] = useState('');

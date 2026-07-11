@@ -7,18 +7,18 @@
 import { Allotment } from "allotment";
 import "allotment/dist/style.css";
 import "@/ReactAiPlayground/index.scss";
+import layoutStyles from "@/ReactAiPlayground/layout.module.scss";
 
-import { lazy, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { debounce } from "lodash-es";
 import { useNavigate } from "react-router";
 
 import Header from "@/ReactAiPlayground/components/Header";
 import {
-    AIPlaygroundContext,
     createTemplateWorkspace,
-    getWorkspaceFromUrl,
     type ConversationWorkspace,
 } from "@/ReactAiPlayground/AIPlaygroundContext";
+import { usePlaygroundStore } from "@/store/playgroundStore";
 import {
     createNewConversationAPI,
     getConversationDetailAPI,
@@ -147,13 +147,12 @@ const mapConversationMessages = (messages: ConversationMessage[]) => {
 
 export default function ReactAiPlayground() {
     const navigate = useNavigate();
-    const {
-        isShow,
-        files,
-        selectedFileName,
-        contextFiles,
-        hydrateWorkspace,
-    } = useContext(AIPlaygroundContext);
+    const files = usePlaygroundStore((state) => state.files);
+    const selectedFileName = usePlaygroundStore((state) => state.selectedFileName);
+    const contextFiles = usePlaygroundStore((state) => state.contextFiles);
+    const hydrateWorkspace = usePlaygroundStore((state) => state.hydrateWorkspace);
+    const activeTab = usePlaygroundStore((state) => state.activeTab);
+    const setActiveTab = usePlaygroundStore((state) => state.setActiveTab);
 
     const {
         conversationId,
@@ -164,8 +163,6 @@ export default function ReactAiPlayground() {
     const [conversationActionLoading, setConversationActionLoading] = useState(false);
 
     const suspendAutoSaveRef = useRef(false);
-    const initializedRef = useRef(false);
-    const initialUrlWorkspaceRef = useRef<ConversationWorkspace | undefined>(getWorkspaceFromUrl());
     const initialConversationIdRef = useRef<number | null>(getConversationIdFromUrl());
 
     const workspace = useMemo<ConversationWorkspace>(() => ({
@@ -264,19 +261,28 @@ export default function ReactAiPlayground() {
     }, [hydrateWorkspace, replaceConversation]);
 
     useEffect(() => {
-        if (initializedRef.current) {
-            return;
-        }
+        const wasInitialized = usePlaygroundStore.getState().initialized;
+        usePlaygroundStore.getState().markInitialized();
 
-        initializedRef.current = true;
+        const urlConversationId = initialConversationIdRef.current;
 
         const initializeConversation = async () => {
             setConversationActionLoading(true);
 
             try {
-                if (initialConversationIdRef.current) {
+                // SPA 内跳转返回同一会话：工作区与消息仍存于全局 store，直接沿用，避免重复初始化清空状态。
+                if (
+                    wasInitialized
+                    && urlConversationId
+                    && urlConversationId === useChatStore.getState().conversationId
+                ) {
+                    return;
+                }
+
+                // URL 指定了会话（首次进入或从用户中心切换会话）：加载该会话。
+                if (urlConversationId) {
                     try {
-                        await loadConversationDetail(initialConversationIdRef.current);
+                        await loadConversationDetail(urlConversationId);
                         return;
                     } catch (error) {
                         console.error("Failed to load conversation from url:", error);
@@ -284,7 +290,12 @@ export default function ReactAiPlayground() {
                     }
                 }
 
-                const initialWorkspace = initialUrlWorkspaceRef.current || createTemplateWorkspace();
+                // 已初始化且未指定其它会话：保留当前工作区与会话，避免切走再回来被重置。
+                if (wasInitialized) {
+                    return;
+                }
+
+                const initialWorkspace = createTemplateWorkspace();
                 await createConversationWithWorkspace(initialWorkspace);
             } catch (error) {
                 console.error("Failed to create conversation:", error);
@@ -334,28 +345,57 @@ export default function ReactAiPlayground() {
 
             <div style={{ flex: 1, position: 'relative' }}>
                 <Allotment>
-                    <Allotment.Pane minSize={200}>
-                        <Suspense fallback={<CodeEditorSkeleton />}>
-                            <CodeEditor />
+                    <Allotment.Pane preferredSize={420} minSize={300}>
+                        <Suspense fallback={<ChatSkeleton />}>
+                            <ChatComponent
+                                key={conversationId ?? 'conversation-pending'}
+                                onBeforeSend={flushWorkspaceSave}
+                            />
                         </Suspense>
                     </Allotment.Pane>
 
-                    <Allotment.Pane minSize={200}>
-                        <Suspense fallback={<PreviewSkeleton />}>
-                            <Preview />
-                        </Suspense>
-                    </Allotment.Pane>
+                    <Allotment.Pane minSize={320}>
+                        <div className={layoutStyles.rightPanel}>
+                            <div className={layoutStyles.tabBar}>
+                                <button
+                                    type="button"
+                                    className={layoutStyles.tab}
+                                    data-active={activeTab === 'preview'}
+                                    onClick={() => setActiveTab('preview')}
+                                >
+                                    预览
+                                </button>
+                                <button
+                                    type="button"
+                                    className={layoutStyles.tab}
+                                    data-active={activeTab === 'code'}
+                                    onClick={() => setActiveTab('code')}
+                                >
+                                    代码
+                                </button>
+                            </div>
 
-                    {isShow && (
-                        <Allotment.Pane preferredSize={400} minSize={100}>
-                            <Suspense fallback={<ChatSkeleton />}>
-                                <ChatComponent
-                                    key={conversationId ?? 'conversation-pending'}
-                                    onBeforeSend={flushWorkspaceSave}
-                                />
-                            </Suspense>
-                        </Allotment.Pane>
-                    )}
+                            <div className={layoutStyles.tabContent}>
+                                {/* 两个视图都常驻，仅用 display 切换，避免 Worker/编辑器反复重建 */}
+                                <div
+                                    className={layoutStyles.pane}
+                                    style={{ display: activeTab === 'preview' ? 'block' : 'none' }}
+                                >
+                                    <Suspense fallback={<PreviewSkeleton />}>
+                                        <Preview />
+                                    </Suspense>
+                                </div>
+                                <div
+                                    className={layoutStyles.pane}
+                                    style={{ display: activeTab === 'code' ? 'block' : 'none' }}
+                                >
+                                    <Suspense fallback={<CodeEditorSkeleton />}>
+                                        <CodeEditor />
+                                    </Suspense>
+                                </div>
+                            </div>
+                        </div>
+                    </Allotment.Pane>
                 </Allotment>
             </div>
         </div>

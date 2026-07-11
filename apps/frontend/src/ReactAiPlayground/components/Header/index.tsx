@@ -4,17 +4,11 @@
  * @author React AI Playground
  */
 
-import { useContext } from 'react';
-
-// 第三方库 - 剪贴板复制
-import copy from 'copy-to-clipboard';
-
 // Ant Design 图标
 import {
     DownloadOutlined,
     LogoutOutlined,
-    PlusOutlined,
-    ShareAltOutlined
+    PlusOutlined
 } from '@ant-design/icons';
 
 // Ant Design 组件
@@ -27,7 +21,7 @@ import logoSvg from '@/ReactAiPlayground/components/Header/icons/logo.svg';
 import styles from '@/ReactAiPlayground/components/Header/index.module.scss';
 
 // 项目内部模块
-import { AIPlaygroundContext } from '@/ReactAiPlayground/AIPlaygroundContext';
+import { usePlaygroundStore } from '@/store/playgroundStore';
 import { downloadFiles } from '@/ReactAiPlayground/utils';
 import { removeToken } from '@/utils/token';
 
@@ -45,7 +39,7 @@ interface HeaderProps {
 
 /**
  * 顶部导航栏组件
- * @description 提供 Logo、AI 面板开关、新建会话、分享链接、下载代码、用户中心和退出登录等入口
+ * @description 提供 Logo、新建会话、下载代码、用户中心和退出登录等入口
  */
 export default function Header(props: HeaderProps) {
     const {
@@ -54,7 +48,7 @@ export default function Header(props: HeaderProps) {
         onOpenUserCenter,
     } = props;
 
-    const { isShow, setIsShow, files } = useContext(AIPlaygroundContext);
+    const files = usePlaygroundStore((state) => state.files);
 
     const handleLogout = () => {
         removeToken();
@@ -67,12 +61,6 @@ export default function Header(props: HeaderProps) {
             <div className={styles.logo}>
                 <img alt='logo' src={logoSvg} />
                 <span>React AI Playground</span>
-                <span
-                    onClick={() => setIsShow(!isShow)}
-                    className={`${styles.aiButton} ${isShow ? styles.active : ''}`}
-                >
-                    AI Panel
-                </span>
             </div>
 
             <div className={styles.links}>
@@ -84,18 +72,6 @@ export default function Header(props: HeaderProps) {
                     disabled={actionLoading}
                 >
                     <PlusOutlined />
-                </button>
-
-                <button
-                    type="button"
-                    className={styles.iconButton}
-                    title='Share'
-                    onClick={() => {
-                        copy(window.location.href)
-                        message.success('Link copied')
-                    }}
-                >
-                    <ShareAltOutlined />
                 </button>
 
                 <button

@@ -5,17 +5,16 @@
  * @author React AI Playground
  */
 
-import { useState, useRef, useEffect, useContext, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react';
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { VList, type VListHandle } from 'virtua';
 import { throttle } from 'lodash-es';
-import { FileCode, Layers, Plus, Send, Square, X } from 'lucide-react';
+import { Check, FileCode, Layers, Plus, Send, Square, X } from 'lucide-react';
 
 import { useChatStore } from '@/store/chatStore';
-import {
-    AIPlaygroundContext,
-    type ConversationWorkspace,
-} from '@/ReactAiPlayground/AIPlaygroundContext';
+import { usePlaygroundStore } from '@/store/playgroundStore';
+import { type ConversationWorkspace } from '@/ReactAiPlayground/AIPlaygroundContext';
 import { useFilePicker } from '@/ReactAiPlayground/components/ChatComponent/hooks/useFilePicker';
 import { useChatStream } from '@/ReactAiPlayground/components/ChatComponent/hooks/useChatStream';
 import { useCodeChanges } from '@/ReactAiPlayground/components/ChatComponent/hooks/useCodeChanges';
@@ -45,18 +44,15 @@ const AIChat = ({ onBeforeSend, onConversationUpdated }: ChatComponentProps) => 
         isTyping,
     } = useChatStore();
 
-    const {
-        files,
-        selectedFileName,
-        contextFiles,
-        setContextFiles,
-        updateFileValue,
-        removeFile,
-        writeFile,
-    } = useContext(AIPlaygroundContext);
+    const files = usePlaygroundStore((state) => state.files);
+    const selectedFileName = usePlaygroundStore((state) => state.selectedFileName);
+    const contextFiles = usePlaygroundStore((state) => state.contextFiles);
+    const setContextFiles = usePlaygroundStore((state) => state.setContextFiles);
 
     const [input, setInput] = useState('');
     const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+    // 下拉框 Portal 到 body 后的定位（相对视口固定）
+    const [pickerPos, setPickerPos] = useState<{ left: number; bottom: number } | null>(null);
 
     const scrollRef = useRef<VListHandle>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -83,16 +79,32 @@ const AIChat = ({ onBeforeSend, onConversationUpdated }: ChatComponentProps) => 
         handleRevertAll,
         handleClearChanges,
         pendingChangesCount,
-    } = useCodeChanges({
-        messages,
-        isTyping,
-        files,
-        writeFile,
-        removeFile,
-        updateFileValue,
-    });
+    } = useCodeChanges();
 
-    const { showFilePicker, setShowFilePicker, pickerRef } = useFilePicker();
+    const { showFilePicker, setShowFilePicker, pickerRef, dropdownRef } = useFilePicker();
+
+    // 打开下拉框时按触发按钮位置计算 fixed 定位，并跟随窗口尺寸变化更新
+    useLayoutEffect(() => {
+        if (!showFilePicker) {
+            return;
+        }
+
+        const updatePosition = () => {
+            const trigger = pickerRef.current;
+            if (!trigger) {
+                return;
+            }
+            const rect = trigger.getBoundingClientRect();
+            setPickerPos({
+                left: rect.left,
+                bottom: window.innerHeight - rect.top + 8,
+            });
+        };
+
+        updatePosition();
+        window.addEventListener('resize', updatePosition);
+        return () => window.removeEventListener('resize', updatePosition);
+    }, [showFilePicker, pickerRef]);
 
     useFixCompilerError(submitChat);
 
@@ -104,6 +116,10 @@ const AIChat = ({ onBeforeSend, onConversationUpdated }: ChatComponentProps) => 
         if (!userMessage?.content || isTyping) {
             return
         }
+
+        // 失败/终止时该消息文字会被恢复到输入框，走重试按钮时一并清空，
+        // 避免重试成功后输入框仍残留同一条文字；用户已改写为其他内容则不清空
+        setInput((current) => (current.trim() === userMessage.content.trim() ? '' : current))
 
         void submitChat(userMessage.content, {
             requestId,
@@ -133,17 +149,21 @@ const AIChat = ({ onBeforeSend, onConversationUpdated }: ChatComponentProps) => 
     }, [handleScroll]);
 
     const handleSend = useCallback(async () => {
-        const nextInput = input
-        const didSend = await submitChat(nextInput)
-        if (!didSend) {
+        const rawInput = input
+        // 校验不通过时既不发送也不清空输入
+        if (!rawInput.trim() || isTyping || !conversationId) {
             return
         }
 
-        setInput('');
-        if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto';
+        // 发送即清空输入框（高度由 input 变化的副作用自动收起）
+        setInput('')
+
+        const didSend = await submitChat(rawInput)
+        // 仅在发送失败或被终止时恢复文字；若用户已在空框中输入新内容则不覆盖
+        if (!didSend) {
+            setInput((current) => (current === '' ? rawInput : current))
         }
-    }, [input, submitChat]);
+    }, [conversationId, input, isTyping, submitChat]);
 
     // 选中文件自动加入上下文
     useEffect(() => {
@@ -175,7 +195,7 @@ const AIChat = ({ onBeforeSend, onConversationUpdated }: ChatComponentProps) => 
             ) : (
                 <div className={styles.chatContainer}>
                     <header className={styles.chatHeader}>
-                        <h2>AI Assistant</h2>
+                        <h2>AI 助手</h2>
                         <button
                             className={`${styles.changesBtn} ${pendingChangesCount > 0 ? styles.hasChanges : ''}`}
                             onClick={() => {
@@ -184,7 +204,7 @@ const AIChat = ({ onBeforeSend, onConversationUpdated }: ChatComponentProps) => 
                             }}
                             title="View code changes"
                         >
-                            <Layers size={18} />
+                            <Layers size={15} />
                             {pendingChangesCount > 0 && (
                                 <span className={styles.changesBadge}>{pendingChangesCount}</span>
                             )}
@@ -213,7 +233,7 @@ const AIChat = ({ onBeforeSend, onConversationUpdated }: ChatComponentProps) => 
 
                     <div className={styles.inputArea}>
                         <div className={styles.contextBar}>
-                            {contextFiles.map(name => (
+                            {contextFiles.slice(0, 3).map(name => (
                                 <div key={name} className={styles.contextChip}>
                                     <FileCode size={12} />
                                     <span className={styles.fileName}>{name}</span>
@@ -225,30 +245,43 @@ const AIChat = ({ onBeforeSend, onConversationUpdated }: ChatComponentProps) => 
                                     </button>
                                 </div>
                             ))}
+                            {contextFiles.length > 3 && (
+                                <span className={styles.moreCount}>+{contextFiles.length - 3}</span>
+                            )}
 
                             <div className={styles.filePickerContainer} ref={pickerRef}>
                                 <button className={styles.addContextBtn} onClick={() => setShowFilePicker(!showFilePicker)}>
                                     <Plus size={14} /> Context
                                 </button>
-                                {showFilePicker && (
-                                    <div className={styles.filePickerDropdown}>
+                                {showFilePicker && pickerPos && createPortal(
+                                    <div
+                                        ref={dropdownRef}
+                                        className={styles.filePickerDropdown}
+                                        style={{ left: pickerPos.left, bottom: pickerPos.bottom }}
+                                    >
                                         <div className={styles.dropdownHeader}>Select files as context</div>
-                                        {Object.keys(files).map(name => (
-                                            <div
-                                                key={name}
-                                                className={`${styles.dropdownItem} ${contextFiles.includes(name) ? styles.selected : ''}`}
-                                                onClick={() => {
-                                                    if (!contextFiles.includes(name)) {
-                                                        setContextFiles([...contextFiles, name]);
-                                                    }
-                                                    setShowFilePicker(false);
-                                                }}
-                                            >
-                                                <FileCode size={14} />
-                                                <span>{name}</span>
-                                            </div>
-                                        ))}
-                                    </div>
+                                        {Object.keys(files).map(name => {
+                                            const selected = contextFiles.includes(name);
+                                            return (
+                                                <div
+                                                    key={name}
+                                                    className={`${styles.dropdownItem} ${selected ? styles.selected : ''}`}
+                                                    onClick={() => {
+                                                        setContextFiles(
+                                                            selected
+                                                                ? contextFiles.filter(f => f !== name)
+                                                                : [...contextFiles, name]
+                                                        );
+                                                    }}
+                                                >
+                                                    <FileCode size={14} />
+                                                    <span>{name}</span>
+                                                    {selected && <Check size={14} className={styles.checkIcon} />}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>,
+                                    document.body
                                 )}
                             </div>
                         </div>

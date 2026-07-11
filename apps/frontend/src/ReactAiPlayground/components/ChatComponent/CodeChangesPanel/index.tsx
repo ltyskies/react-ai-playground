@@ -5,7 +5,7 @@
  * @author React AI Playground
  */
 
-import { useContext, useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 
 // 第三方库 - 图标组件
 import {
@@ -21,8 +21,9 @@ import {
 // 第三方库 - 文本差异对比
 import { diffLines } from 'diff';
 
-// 项目内部模块 - 全局状态 Context
-import { AIPlaygroundContext, type File } from '@/ReactAiPlayground/AIPlaygroundContext';
+// 项目内部模块 - 全局工作区状态
+import { usePlaygroundStore } from '@/store/playgroundStore';
+import { type File } from '@/ReactAiPlayground/AIPlaygroundContext';
 
 // 样式文件
 import styles from '@/ReactAiPlayground/components/ChatComponent/CodeChangesPanel/index.module.scss';
@@ -220,7 +221,7 @@ const CodeChangesPanel = ({
     onApplyAll,
     onRevertAll,
 }: CodeChangesPanelProps) => {
-    const { files } = useContext(AIPlaygroundContext);
+    const files = usePlaygroundStore((state) => state.files);
     const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
     const toggleExpanded = useCallback((id: string) => {
@@ -277,11 +278,11 @@ const CodeChangesPanel = ({
             <div className={styles.panelContainer}>
                 <div className={styles.panelHeader}>
                     <h3>
-                        <Layers size={18} />
+                        <Layers size={15} />
                         代码变更
                     </h3>
                     <button className={styles.closeBtn} onClick={onClose}>
-                        <X size={18} />
+                        <X size={15} />
                     </button>
                 </div>
                 <div className={styles.emptyState}>
@@ -297,14 +298,14 @@ const CodeChangesPanel = ({
         <div className={styles.panelContainer}>
             <div className={styles.panelHeader}>
                 <h3>
-                    <Layers size={18} />
+                    <Layers size={15} />
                     代码变更
                     <span className={styles.badge}>
                         {stats.pending > 0 ? `${stats.pending} 待应用` : '全部完成'}
                     </span>
                 </h3>
                 <button className={styles.closeBtn} onClick={onClose}>
-                    <X size={18} />
+                    <X size={15} />
                 </button>
             </div>
 

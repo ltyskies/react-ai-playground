@@ -5,12 +5,12 @@
  * @author React AI Playground
  */
 
-import { memo, useContext, useState } from 'react';
+import { memo, useState } from 'react';
 import { Check, Copy, FileCode } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneLight as prismTheme } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-import { AIPlaygroundContext } from '@/ReactAiPlayground/AIPlaygroundContext';
+import { usePlaygroundStore } from '@/store/playgroundStore';
 
 import styles from '@/ReactAiPlayground/components/ChatComponent/MessageItem/MarkdownRenderer/CodeBlock/index.module.scss';
 
@@ -31,7 +31,7 @@ const CodeBlock = memo(({ language, value, fileName }: CodeBlockProps) => {
     // 用短暂成功态反馈复制和应用操作已经完成。
     const [copied, setCopied] = useState(false);
     const [applied, setApplied] = useState(false);
-    const { writeFile } = useContext(AIPlaygroundContext);
+    const writeFile = usePlaygroundStore((state) => state.writeFile);
 
     const onCopy = () => {
         navigator.clipboard.writeText(value);

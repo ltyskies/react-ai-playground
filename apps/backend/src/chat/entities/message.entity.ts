@@ -14,6 +14,7 @@ import {
   Index,
 } from 'typeorm';
 import { Conversation } from './conversation.entity';
+import type { PersistedCodeChange } from '../types/generation-event.type';
 
 /**
  * 消息角色枚举
@@ -110,6 +111,15 @@ export class Message {
    */
   @Column({ type: 'text' })
   content: string;
+
+  /**
+   * 代码变更集合
+   * @description 助手消息经工程化校验后产出的文件变更，供历史回放重建代码事件；
+   *              思考文本仍保存在 content 中，代码与思考分离存储
+   * @decorator @Column - JSON 列，可为空
+   */
+  @Column({ name: 'code_changes', type: 'json', nullable: true })
+  codeChanges: PersistedCodeChange[] | null;
 
   /**
    * 创建时间

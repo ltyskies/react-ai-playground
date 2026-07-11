@@ -328,22 +328,52 @@ const removeModuleFromGraph = (
 }
 
 /**
- * 解析相对导入对应的扁平文件名
+ * 解析相对导入对应的工作区文件名（支持树状目录）
+ * 以导入方所在目录为基准规范化相对路径，并按扩展名 / index 兜底命中
  * @param files - 当前文件集合
+ * @param importerFileName - 发起导入的文件路径
  * @param modulePath - 导入路径
  * @returns 匹配到的文件名
  */
-const resolveModuleFileName = (files: Files, modulePath: string) => {
-    const rawModuleName = modulePath.split('/').pop() || ''
-    if (!rawModuleName) return
-
-    if (rawModuleName.includes('.')) {
-        return files[rawModuleName] ? rawModuleName : undefined
+const resolveModuleFileName = (files: Files, importerFileName: string, modulePath: string) => {
+    // 仅解析相对路径，裸模块交给 import-map 处理
+    if (!modulePath.startsWith('.')) {
+        return undefined
     }
 
-    return Object.keys(files)
-        .filter((fileName) => isJsModule(fileName))
-        .find((fileName) => fileName.replace(/\.[^.]+$/, '') === rawModuleName)
+    // 取导入方所在目录作为解析基准
+    const importerDir = importerFileName.includes('/')
+        ? importerFileName.slice(0, importerFileName.lastIndexOf('/'))
+        : ''
+    const segments = importerDir ? importerDir.split('/') : []
+
+    // 规范化 . 与 ..，得到相对工作区根的路径
+    modulePath.split('/').forEach((segment) => {
+        if (segment === '' || segment === '.') {
+            return
+        }
+
+        if (segment === '..') {
+            segments.pop()
+            return
+        }
+
+        segments.push(segment)
+    })
+
+    const base = segments.join('/')
+    if (!base) {
+        return undefined
+    }
+
+    // 依次尝试：原样命中（含后缀）→ 省略后缀 → 目录 index
+    const candidates = [
+        base,
+        ...JS_EXTENSIONS.map((extension) => `${base}${extension}`),
+        ...JS_EXTENSIONS.map((extension) => `${base}/index${extension}`),
+    ]
+
+    return candidates.find((fileName) => files[fileName])
 }
 
 /**
@@ -363,10 +393,12 @@ const json2Js = (file: File) => {
  */
 const css2Js = (file: File) => {
     const randomId = new Date().getTime()
+    // 文件名可能包含路径分隔符，转成合法 id 片段
+    const safeName = file.name.replace(/[^\w-]/g, '_')
     return `
 (() => {
     const stylesheet = document.createElement('style')
-    stylesheet.setAttribute('id', 'style_${randomId}_${file.name}')
+    stylesheet.setAttribute('id', 'style_${randomId}_${safeName}')
     document.head.appendChild(stylesheet)
 
     const styles = document.createTextNode(\`${file.value}\`)
@@ -583,7 +615,7 @@ const addRelativeModuleReplacement = (
         return
     }
 
-    const resolvedFileName = resolveModuleFileName(context.files, modulePath)
+    const resolvedFileName = resolveModuleFileName(context.files, fileName, modulePath)
     if (!resolvedFileName) {
         throw new Error(`模块 "${fileName}" 依赖的 "${modulePath}" 不存在`)
     }

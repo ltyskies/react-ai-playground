@@ -16,6 +16,6 @@ export function buildPromptRulesMessage(promptRules: string) {
   }
 
   return new SystemMessage(
-    `Follow these user-specific rules for every response unless a higher-priority system instruction conflicts:\n${promptRules}`,
+    `请在每一次回复中都遵守以下用户自定义规则，除非有更高优先级的系统指令与之冲突：\n${promptRules}`,
   );
 }

@@ -21,24 +21,6 @@
   }
 }
 
-.aiButton {
-  cursor: pointer;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
-  margin-left: 50px;
-  transition: all var(--transition-base);
-  user-select: none;
-  display: inline-flex;
-  align-items: center;
-}
-
-.active {
-  color: var(--color-primary);
-  background: var(--color-primary-bg);
-}
-
 .links {
   display: flex;
   align-items: center;

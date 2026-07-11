@@ -1,6 +1,6 @@
 /**
  * @file stream-generation.service.ts
- * @description 流式回复生成管道：组装 prompt、调用模型、消费流、持久化结果
+ * @description 流式回复生成管道：组装 prompt、驱动代码生成编排器、产出结构化事件、持久化结果
  */
 
 import { BadRequestException, Injectable } from '@nestjs/common';
@@ -17,16 +17,15 @@ import { User } from '../../user/entities/user.entity';
 import { Conversation } from '../entities/conversation.entity';
 import { MessageRole, StreamStatus } from '../entities/message.entity';
 import { createChatModel } from '../config';
-import {
-  CODING_ASSISTANT_SYSTEM_PROMPT,
-  buildPromptRulesMessage,
-  buildUserPrompt,
-} from '../prompts';
+import { buildPromptRulesMessage, buildUserPrompt } from '../prompts';
+import { CODE_GENERATION_SYSTEM_PROMPT } from '../prompts/code-generation.prompt';
 import type { ConversationWorkspace } from '../types/conversation-workspace.type';
+import type { GenerationEvent } from '../types/generation-event.type';
 import { REPLAY_CHUNK_SIZE } from '../config';
 import { ConversationService } from './conversation.service';
 import { MessageService } from './message.service';
 import { ConversationSummaryService } from './conversation-summary.service';
+import { CodeGenerationOrchestratorService } from './code-generation-orchestrator.service';
 
 interface GenerateStreamOptions {
   signal?: AbortSignal;
@@ -43,11 +42,12 @@ export class StreamGenerationService {
     private conversationService: ConversationService,
     private messageService: MessageService,
     private conversationSummaryService: ConversationSummaryService,
+    private codeGenerationOrchestrator: CodeGenerationOrchestratorService,
   ) {
     this.chatModel = createChatModel(this.configService);
   }
 
-  /** 生成流式回复 */
+  /** 生成流式回复（产出结构化事件） */
   async generateStream(
     userId: number | undefined,
     conversationId: number,
@@ -55,7 +55,7 @@ export class StreamGenerationService {
     workspace: ConversationWorkspace,
     requestId: string,
     options: GenerateStreamOptions = {},
-  ): Promise<AsyncGenerator<string>> {
+  ): Promise<AsyncGenerator<GenerationEvent>> {
     const normalizedRequestId = requestId.trim();
     if (!normalizedRequestId) {
       throw new BadRequestException('Missing requestId');
@@ -84,7 +84,11 @@ export class StreamGenerationService {
         normalizedRequestId,
         StreamStatus.COMPLETED,
       );
-      return this.createReplayGenerator(completedAssistantMessage.content);
+      return this.createReplayGenerator(
+        conversationId,
+        normalizedRequestId,
+        completedAssistantMessage.content,
+      );
     }
 
     const savedUserMessage = await this.messageService.createOrReuseUserMessage(
@@ -100,7 +104,8 @@ export class StreamGenerationService {
     const promptHistory =
       await this.messageService.getConversationRuntimeMessages(conversationId);
     const promptRules = await this.getUserPromptRules(userId);
-    const personalProfile = await this.getUserPersonalProfile(userId);
+    // 暂时关闭将用户画像随对话一起传给大模型，恢复时改回 getUserPersonalProfile(userId)
+    const personalProfile = '';
     const promptHistoryContext =
       await this.conversationSummaryService.buildPromptHistoryContext(
         conversation,
@@ -110,8 +115,11 @@ export class StreamGenerationService {
           this.messageService.shouldIncludeInPromptHistory(msg, currentId),
       );
 
+    // 每轮都携带代码区全部文件（在 buildUserPrompt 中拼接，勾选文件打重点标记）。
+    const userPrompt = buildUserPrompt(savedUserMessage.content, workspace);
+
     const messages: BaseMessage[] = [
-      new SystemMessage(CODING_ASSISTANT_SYSTEM_PROMPT),
+      new SystemMessage(CODE_GENERATION_SYSTEM_PROMPT),
       ...(promptRules ? [buildPromptRulesMessage(promptRules)!] : []),
       ...(personalProfile
         ? [
@@ -130,36 +138,46 @@ export class StreamGenerationService {
       ...promptHistoryContext.rawHistoryMessages.map((message) =>
         this.messageService.toModelHistoryMessage(message),
       ),
-      new HumanMessage(buildUserPrompt(savedUserMessage.content, workspace)),
+      new HumanMessage(userPrompt),
     ];
 
-    const stream = await this.chatModel.stream(messages);
     return this.createModelStreamGenerator({
       conversation,
       conversationId,
       requestId: normalizedRequestId,
-      stream,
+      messages,
+      workspace,
       signal: options.signal,
     });
   }
 
-  /** 创建模型流式生成器（消费流、写入助手消息、同步状态） */
+  /** 创建模型流式生成器（驱动编排器、产出事件、持久化结果） */
   private createModelStreamGenerator(params: {
     conversation: Conversation;
     conversationId: number;
     requestId: string;
-    stream: AsyncIterable<{ content: unknown }>;
+    messages: BaseMessage[];
+    workspace: ConversationWorkspace;
     signal?: AbortSignal;
-  }): AsyncGenerator<string> {
-    const { conversation, conversationId, requestId, stream, signal } = params;
+  }): AsyncGenerator<GenerationEvent> {
+    const {
+      conversation,
+      conversationId,
+      requestId,
+      messages,
+      workspace,
+      signal,
+    } = params;
     const conversationService = this.conversationService;
     const messageService = this.messageService;
+    const orchestrator = this.codeGenerationOrchestrator;
+    const model = this.chatModel;
 
     return (async function* generator() {
-      let fullResponse = '';
-
       try {
-        for await (const chunk of stream) {
+        const runner = orchestrator.run({ model, messages, workspace, signal });
+        let next = await runner.next();
+        while (!next.done) {
           if (signal?.aborted) {
             await messageService.updateRequestStatus(
               conversationId,
@@ -169,12 +187,8 @@ export class StreamGenerationService {
             await conversationService.touchConversation(conversation);
             return;
           }
-
-          const chunkContent = extractChunkContent(chunk.content);
-          if (!chunkContent) continue;
-
-          fullResponse += chunkContent;
-          yield chunkContent;
+          yield next.value;
+          next = await runner.next();
         }
 
         if (signal?.aborted) {
@@ -187,10 +201,12 @@ export class StreamGenerationService {
           return;
         }
 
+        const result = next.value;
         await messageService.saveCompletedAssistantMessage(
           conversationId,
           requestId,
-          fullResponse,
+          result.thinking,
+          result.codeChanges,
         );
         await messageService.updateRequestStatus(
           conversationId,
@@ -220,12 +236,57 @@ export class StreamGenerationService {
     })();
   }
 
-  /** 创建回放生成器 */
-  private async *createReplayGenerator(content: string) {
-    if (!content) return;
-    for (let i = 0; i < content.length; i += REPLAY_CHUNK_SIZE) {
-      yield content.slice(i, i + REPLAY_CHUNK_SIZE);
-    }
+  /** 创建回放生成器：重建思考文本与代码 file 事件 */
+  private createReplayGenerator(
+    conversationId: number,
+    requestId: string,
+    content: string,
+  ): AsyncGenerator<GenerationEvent> {
+    const messageService = this.messageService;
+
+    return (async function* replay() {
+      if (content) {
+        for (let i = 0; i < content.length; i += REPLAY_CHUNK_SIZE) {
+          yield {
+            type: 'thinking',
+            content: content.slice(i, i + REPLAY_CHUNK_SIZE),
+          } as GenerationEvent;
+        }
+      }
+
+      const entity = await messageService.getAssistantMessageEntity(
+        conversationId,
+        requestId,
+      );
+      const codeChanges = entity?.codeChanges ?? [];
+
+      for (const change of codeChanges) {
+        yield {
+          type: 'file_start',
+          fileName: change.fileName,
+          language: change.language,
+          isNewFile: change.isNewFile,
+          oldValue: change.oldValue,
+        };
+
+        const lines = change.newValue.split('\n');
+        for (let index = 0; index < lines.length; index++) {
+          yield {
+            type: 'code',
+            fileName: change.fileName,
+            index,
+            line: lines[index],
+          };
+        }
+
+        yield {
+          type: 'file_end',
+          fileName: change.fileName,
+          status: change.status,
+          content: change.newValue,
+        };
+      }
+    })();
   }
 
   /** 获取用户提示规则 */
@@ -250,23 +311,4 @@ export class StreamGenerationService {
     const profile = user.personalProfile as { content?: string };
     return profile.content?.trim() || '';
   }
-}
-
-/** 提取模型分片文本（模块级工具函数，避免闭包内 this 引用） */
-function extractChunkContent(content: unknown): string {
-  if (typeof content === 'string') return content;
-  if (!Array.isArray(content)) return '';
-  return content
-    .map((part) => {
-      if (typeof part === 'string') return part;
-      if (
-        part &&
-        typeof part === 'object' &&
-        'text' in part &&
-        typeof part.text === 'string'
-      )
-        return part.text;
-      return '';
-    })
-    .join('');
 }

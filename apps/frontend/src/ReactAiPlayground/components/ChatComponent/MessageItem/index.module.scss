@@ -1,59 +1,67 @@
 .messageItem {
   display: flex;
-  gap: 12px;
-  padding: 16px 20px;
+  gap: 10px;
+  padding: 14px 20px;
+  align-items: flex-start;
+  // 消息出现（用户发送 / AI 开始生成）时的入场过渡
+  animation: messageIn 0.28s ease both;
 
   &.user {
     flex-direction: row-reverse;
 
     .messageBubble {
       background: var(--color-primary-bg);
-      border-radius: 12px 0 12px 12px;
+      border: 1px solid rgba(22, 119, 255, 0.12);
+      border-radius: 18px 6px 18px 18px;
     }
   }
 
   &.assistant {
     .messageBubble {
-      background: var(--color-bg-layout);
-      border-radius: 0 12px 12px 12px;
+      background: var(--color-bg-base);
+      border: 1px solid var(--color-border-secondary);
+      border-radius: 6px 18px 18px 18px;
     }
   }
 }
 
 .avatar {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  color: #fff;
 
   &.userAvatar {
-    background: var(--color-primary);
-    color: #fff;
+    background: linear-gradient(135deg, var(--color-primary-hover), var(--color-primary-active));
+    box-shadow: 0 2px 6px rgba(22, 119, 255, 0.3);
   }
 
   &.assistantAvatar {
-    background: var(--color-success);
-    color: #fff;
+    background: linear-gradient(135deg, var(--color-success-hover), var(--color-success-active));
+    box-shadow: 0 2px 6px rgba(16, 163, 127, 0.3);
   }
 }
 
 .messageBubble {
-  max-width: 85%;
-  padding: 10px 14px;
+  max-width: 82%;
+  padding: 11px 15px;
   font-size: 15px;
   line-height: 1.6;
   color: var(--color-text-primary);
   overflow-wrap: break-word;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .typingCursor {
   display: inline-block;
-  width: 6px;
-  height: 16px;
-  background: var(--color-text-primary);
+  width: 7px;
+  height: 15px;
+  border-radius: 2px;
+  background: var(--color-success);
   margin-left: 4px;
   vertical-align: middle;
   animation: blink 1s infinite;
@@ -97,15 +105,16 @@
   color: var(--color-text-tertiary);
 }
 
-.protocolTip {
-  margin-top: 10px;
-  padding: 8px 10px;
-  border-radius: var(--radius-md);
-  background: #fffbe6;
-  border: 1px solid #ffe58f;
-  color: #ad6800;
+.stageIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.stageText {
   font-size: var(--font-size-sm);
-  line-height: 1.5;
+  color: var(--color-text-tertiary);
 }
 
 .retryButton {
@@ -129,4 +138,23 @@
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
+}
+
+// 消息入场动画：轻微上移 + 淡入
+@keyframes messageIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// 尊重用户的减少动态偏好
+@media (prefers-reduced-motion: reduce) {
+  .messageItem {
+    animation: none;
+  }
 }

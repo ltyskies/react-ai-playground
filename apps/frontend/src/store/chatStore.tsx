@@ -25,15 +25,6 @@ export interface Message {
 }
 
 /**
- * 待刷新内容缓存
- * @description 流式输出时暂存最新内容，等定时器触发时批量同步到消息列表
- */
-interface PendingContentState {
-    requestId: string | null;
-    content: string;
-}
-
-/**
  * 消息状态补丁选项
  */
 interface MessagePatchOptions {
@@ -56,8 +47,6 @@ interface ChatState {
     isTyping: boolean;
     /** 当前活跃的请求 ID（用于流式请求追踪） */
     activeRequestId: string | null;
-    /** 流式输出暂存内容 */
-    pendingContent: PendingContentState;
     /** 当前请求的中断控制器 */
     abortController: AbortController | null;
     setConversationId: (id: number | null) => void;
@@ -68,7 +57,6 @@ interface ChatState {
     }) => void;
     addMessage: (msg: AddMessagePayload) => void;
     updateAssistantMessage: (requestId: string, content: string) => void;
-    flushPendingContent: () => void;
     setRequestStatus: (
         requestId: string,
         status: StreamStatus,
@@ -122,36 +110,13 @@ const patchAssistantMessageByRequestId = (
         : message
 ))
 
-// 流式输出阶段先把最新内容缓存在 store 中，再按节流频率落到消息列表里，
-// 可以减少频繁 setState 带来的重渲染抖动。
-const applyPendingContent = (state: ChatState) => {
-    const { pendingContent } = state
-    if (!pendingContent.content || !pendingContent.requestId) {
-        state.pendingContent = { requestId: null, content: '' }
-        return
-    }
-
-    state.messages = patchAssistantMessageByRequestId(
-        state.messages,
-        pendingContent.requestId,
-        (message) => ({
-            ...message,
-            content: pendingContent.content,
-        })
-    )
-    state.pendingContent = { requestId: null, content: '' }
-}
-
 export const useChatStore = create<ChatState>()(
     (set, get) => {
-        let updateTimer: ReturnType<typeof setTimeout> | null = null;
-
         return {
             conversationId: null,
             messages: [],
             isTyping: false,
             activeRequestId: null,
-            pendingContent: { requestId: null, content: '' },
             abortController: null,
 
             setConversationId: (id) => set({ conversationId: id }),
@@ -163,7 +128,6 @@ export const useChatStore = create<ChatState>()(
                 messages: messages.map(normalizeMessage),
                 isTyping: false,
                 activeRequestId: null,
-                pendingContent: { requestId: null, content: '' },
                 abortController: null,
             }),
 
@@ -175,35 +139,17 @@ export const useChatStore = create<ChatState>()(
                     state.messages.push(normalizeMessage(msg));
                 })),
 
+            // 流式内容直接同步到消息列表，不做防抖，保证逐字/逐行实时可见。
             updateAssistantMessage: (requestId, content) => {
-                if (updateTimer) {
-                    clearTimeout(updateTimer);
-                }
-
-                // 先缓存本次流式内容，等定时器触发时再批量同步到消息列表。
-                set({
-                    pendingContent: {
-                        requestId,
-                        content,
-                    }
-                });
-
-                updateTimer = setTimeout(() => {
-                    set(produce((state: ChatState) => {
-                        applyPendingContent(state)
-                    }));
-                    updateTimer = null;
-                }, 50);
-            },
-
-            flushPendingContent: () => {
-                if (updateTimer) {
-                    clearTimeout(updateTimer);
-                    updateTimer = null;
-                }
-
                 set(produce((state: ChatState) => {
-                    applyPendingContent(state)
+                    state.messages = patchAssistantMessageByRequestId(
+                        state.messages,
+                        requestId,
+                        (message) => ({
+                            ...message,
+                            content,
+                        })
+                    )
                 }));
             },
 
@@ -239,16 +185,11 @@ export const useChatStore = create<ChatState>()(
                             errorMessage: undefined,
                         })
                     )
-
-                    if (state.pendingContent.requestId === requestId) {
-                        state.pendingContent = { requestId: null, content: '' }
-                    }
                 }));
             },
 
             clearMessages: () => set({
                 messages: [],
-                pendingContent: { requestId: null, content: '' },
                 isTyping: false,
                 activeRequestId: null,
             }),
@@ -259,16 +200,10 @@ export const useChatStore = create<ChatState>()(
                 const controller = get().abortController;
                 controller?.abort();
 
-                if (updateTimer) {
-                    clearTimeout(updateTimer);
-                    updateTimer = null;
-                }
-
                 set({
                     abortController: null,
                     isTyping: false,
                     activeRequestId: null,
-                    pendingContent: { requestId: null, content: '' },
                 });
             },
         };

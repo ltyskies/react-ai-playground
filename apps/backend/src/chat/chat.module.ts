@@ -14,6 +14,8 @@ import { ConversationService } from './services/conversation.service';
 import { MessageService } from './services/message.service';
 import { ConversationSummaryService } from './services/conversation-summary.service';
 import { StreamGenerationService } from './services/stream-generation.service';
+import { CodeGenerationOrchestratorService } from './services/code-generation-orchestrator.service';
+import { CodeValidatorService } from './services/code-validator.service';
 import { Conversation } from './entities/conversation.entity';
 import { Message } from './entities/message.entity';
 import { User } from '../user/entities/user.entity';
@@ -36,6 +38,8 @@ import { User } from '../user/entities/user.entity';
     MessageService,
     ConversationSummaryService,
     StreamGenerationService,
+    CodeGenerationOrchestratorService,
+    CodeValidatorService,
   ],
   exports: [ConversationSummaryService, MessageService],
 })

@@ -15,9 +15,9 @@ import styles from '@/ReactAiPlayground/components/Skeleton/ChatSkeleton/index.m
 const ChatSkeleton = () => {
     return (
         <div className={`${styles.chatSkeleton} skeleton`}>
-            {/* 骨架屏头部 */}
+            {/* 骨架屏头部：文案与真实头部保持一致，避免加载切换时跳变 */}
             <div className={styles.chatHeaderSkeleton}>
-                <span>AI助手</span>
+                <span>AI 助手</span>
             </div>
             {/* 骨架屏消息区域占位 */}
             <div className={styles.messagesViewportSkeleton}></div>

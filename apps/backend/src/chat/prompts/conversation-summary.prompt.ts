@@ -3,8 +3,8 @@
  * @description 长对话摘要统一要求固定 Markdown 标题，便于后续轮次稳定复用
  */
 
-export const CONVERSATION_SUMMARY_SYSTEM_PROMPT = `You maintain a rolling memory summary for a coding conversation.
-Return a complete Markdown document in Chinese and keep exactly these top-level headings:
+export const CONVERSATION_SUMMARY_SYSTEM_PROMPT = `你负责为一次编码对话维护一份滚动更新的记忆摘要。
+请返回一份完整的中文 Markdown 文档，并严格保留以下顶级标题：
 ## 当前目标
 ## 已确认需求
 ## 关键约束
@@ -13,10 +13,10 @@ Return a complete Markdown document in Chinese and keep exactly these top-level 
 ## 未解决问题
 ## 用户偏好
 
-Rules:
-- Keep only stable information that is useful for future reasoning.
-- Remove greetings, repetition, and temporary chatter.
-- Do not invent facts that are not grounded in the conversation.
-- If the new rounds conflict with the previous summary, update the summary based on the new rounds.
-- Mention important filenames, interfaces, APIs, constraints, and pending decisions when present.
-- If a section has no useful content, write "- 无".`;
+规则：
+- 只保留对后续推理有用的稳定信息。
+- 去除寒暄、重复和临时性的闲聊。
+- 不要编造对话中没有依据的事实。
+- 如果新增轮次与之前的摘要冲突，请以新增轮次为准更新摘要。
+- 出现时请记录重要的文件名、接口、API、约束和待决事项。
+- 如果某个小节没有有用内容，写 "- 无"。`;

@@ -266,11 +266,19 @@ export class ChatController {
     const abortController = new AbortController();
     let isStreamFinished = false;
 
+    // 心跳：长任务（校验/回炉修复）静默期定时下发注释帧，避免前端空闲超时误判断连。
+    const heartbeatTimer = setInterval(() => {
+      if (!isStreamFinished && !res.writableEnded) {
+        res.write(': ping\n\n');
+      }
+    }, 10000);
+
     req.on('close', () => {
       if (isStreamFinished) {
         return;
       }
 
+      clearInterval(heartbeatTimer);
       abortController.abort();
       console.log('Client connection closed, stop streaming');
     });
@@ -285,12 +293,12 @@ export class ChatController {
         { signal: abortController.signal },
       );
 
-      for await (const chunk of streamGenerator) {
+      for await (const event of streamGenerator) {
         if (abortController.signal.aborted || res.writableEnded) {
           break;
         }
 
-        res.write(`data: ${JSON.stringify({ content: chunk })}\n\n`);
+        res.write(`event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`);
       }
 
       if (!abortController.signal.aborted && !res.writableEnded) {
@@ -298,12 +306,14 @@ export class ChatController {
       }
 
       isStreamFinished = true;
+      clearInterval(heartbeatTimer);
       if (!res.writableEnded) {
         res.end();
       }
     } catch (error) {
       console.error('Streaming error:', error);
       isStreamFinished = true;
+      clearInterval(heartbeatTimer);
 
       if (!abortController.signal.aborted && !res.writableEnded) {
         res.write(

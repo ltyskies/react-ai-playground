@@ -5,12 +5,9 @@
  * @author React AI Playground
  */
 
-// React 核心库 - memo 和 Hooks 用于性能优化
+// React 核心库 - memo 用于性能优化
 import {
     memo,
-    useState,
-    useEffect,
-    useRef,
     type ReactNode,
 } from "react";
 
@@ -99,45 +96,11 @@ function MarkdownRenderErrorBoundary({ children, content, resetKey }: MarkdownRe
  * 使用 react-markdown 渲染 Markdown 内容
  * 支持代码块语法高亮、GitHub 风格表格等
  * 支持从代码块中提取文件名并传递给 CodeBlock 组件
- * 使用防抖机制减少流式输出时的重渲染
+ * 流式输出时直接渲染最新内容，不做防抖，保证逐字实时可见
  */
 const MarkdownRenderer = memo(({ content, status }: MarkdownRendererProps) => {
-    // 防抖后的显示内容
-    const [displayContent, setDisplayContent] = useState(() => getDisplayMarkdown(content, status));
-    // 防抖定时器引用
-    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    useEffect(() => {
-        const nextDisplayContent = getDisplayMarkdown(content, status);
-
-        // 清除之前的定时器
-        if (timerRef.current) {
-            clearTimeout(timerRef.current);
-        }
-
-        // 立即更新（如果是空内容或内容变化较大）
-        const contentLengthDiff = Math.abs(nextDisplayContent.length - displayContent.length);
-        if (contentLengthDiff > 100 || nextDisplayContent.length === 0) {
-            // 使用 requestAnimationFrame 避免同步 setState
-            requestAnimationFrame(() => {
-                setDisplayContent(nextDisplayContent);
-            });
-        } else {
-            // 小变化使用防抖（30ms）
-            timerRef.current = setTimeout(() => {
-                setDisplayContent(nextDisplayContent);
-                timerRef.current = null;
-            }, 30);
-        }
-
-        // 清理函数
-        return () => {
-            if (timerRef.current) {
-                clearTimeout(timerRef.current);
-            }
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [content, status]);
+    // 流式期间为未闭合代码块补结束标记后，直接渲染，不做防抖延迟
+    const displayContent = getDisplayMarkdown(content, status);
 
     return (
         <div className={styles.markdownBody}>

@@ -10,12 +10,6 @@ interface ParsedCodeBlockInfo {
     fileName?: string
 }
 
-interface ExtractableCodeBlock {
-    language: string
-    fileName: string
-    code: string
-}
-
 /**
  * 从 Markdown 代码块元信息里提取文件名。
  * 兼容 `filename="App.tsx"`、`:App.tsx` 和纯文件名三种写法。
@@ -86,40 +80,4 @@ export const extractCodeBlockFileName = (
     }
 
     return undefined
-}
-
-/**
- * 从整段消息里提取可直接应用到工作区的代码块。
- * 只有同时具备语言、文件名和代码内容的代码块才会被视为可自动应用。
- */
-export const extractAutoApplicableCodeBlocks = (content: string): ExtractableCodeBlock[] => {
-    const codeBlockRegex = /```([^\n]*)\n([\s\S]*?)```/g
-    const codeBlocks: ExtractableCodeBlock[] = []
-    let match: RegExpExecArray | null
-
-    while ((match = codeBlockRegex.exec(content)) !== null) {
-        const [, info, code] = match
-        const parsed = parseCodeBlockInfo(info)
-        const trimmedCode = code.trim()
-        const trimmedFileName = parsed.fileName?.trim()
-
-        if (!parsed.language || !trimmedFileName || !trimmedCode) {
-            continue
-        }
-
-        codeBlocks.push({
-            language: parsed.language,
-            fileName: trimmedFileName,
-            code: trimmedCode,
-        })
-    }
-
-    return codeBlocks
-}
-
-/**
- * 快速判断消息里是否包含符合自动应用协议的代码块。
- */
-export const hasExtractableCodeBlock = (content: string) => {
-    return extractAutoApplicableCodeBlocks(content).length > 0
 }

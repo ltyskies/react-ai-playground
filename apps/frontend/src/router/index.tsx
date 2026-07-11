@@ -16,8 +16,7 @@ import Login from "@/login";
 import NotFound from "@/notFound";
 import UserCenter from "@/userCenter";
 
-// 项目内部 Context 和主页面
-import { AIPlaygroundProvider } from "@/ReactAiPlayground/AIPlaygroundContext";
+// 项目内部主页面
 import ReactAiPlayground from "@/ReactAiPlayground";
 
 // 样式文件
@@ -42,9 +41,7 @@ const router = createBrowserRouter([
         path: '/index',
         element: (
             <AuthRoute>
-                <AIPlaygroundProvider>
-                    <ReactAiPlayground />
-                </AIPlaygroundProvider>
+                <ReactAiPlayground />
             </AuthRoute>
         ),
     },

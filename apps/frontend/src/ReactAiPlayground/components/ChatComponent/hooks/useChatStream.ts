@@ -7,6 +7,7 @@
 
 import { useRef, useCallback } from 'react';
 import { useChatStore } from '@/store/chatStore';
+import { useCodeChangesStore } from '@/store/codeChangesStore';
 import { getToken } from '@/utils/token';
 import { apiBaseUrl, handleUnauthorized } from '@/utils/request';
 import type { StreamStatus } from '@/apis/chat';
@@ -23,6 +24,18 @@ import {
 export interface SubmitChatOptions {
     requestId?: string
     retry?: boolean
+}
+
+/** 结构化流事件的统一载荷（不同事件使用其中的部分字段） */
+interface StreamEventPayload {
+    content?: string
+    fileName?: string
+    language?: string
+    isNewFile?: boolean
+    oldValue?: string
+    line?: string
+    index?: number
+    status?: 'done'
 }
 
 /** 请求失败的统一描述结构 */
@@ -172,7 +185,6 @@ export const useChatStream = ({
         isTyping,
         addMessage,
         updateAssistantMessage,
-        flushPendingContent,
         setRequestStatus,
         prepareRequestRetry,
         setIsTyping,
@@ -337,34 +349,66 @@ export const useChatStream = ({
                     }
                 }
 
+                let payload: StreamEventPayload;
                 try {
-                    const parsed = JSON.parse(parsedEvent.data) as { content?: string };
-                    if (typeof parsed.content !== 'string') {
-                        throw new ChatRequestError(
-                            '流式响应内容格式无效。',
-                            {
-                                status: 'failed',
-                                retryable: true,
-                                reason: 'invalid_content_event',
-                            }
-                        );
-                    }
-
-                    streamedContent += parsed.content;
-                    updateAssistantMessage(requestId, streamedContent);
-                    resetIdleTimer()
+                    payload = JSON.parse(parsedEvent.data) as StreamEventPayload;
                 } catch (error) {
-                    if (error instanceof ChatRequestError) {
-                        throw error;
-                    }
-
-                    console.error('Failed to parse SSE content event.', error, parsedEvent.data);
+                    console.error('Failed to parse SSE payload.', error, parsedEvent.data);
                     throw new ChatRequestError('流式响应内容格式无效。', {
                         status: 'failed',
                         retryable: true,
                         reason: 'invalid_content_event',
                     });
                 }
+
+                const codeStore = useCodeChangesStore.getState();
+
+                switch (parsedEvent.event) {
+                    // 思考/说明文本：累加展示到聊天气泡
+                    case 'thinking': {
+                        if (typeof payload.content !== 'string') {
+                            break;
+                        }
+                        streamedContent += payload.content;
+                        updateAssistantMessage(requestId, streamedContent);
+                        break;
+                    }
+                    // 收到传代码信号：跳转代码区、擦除/新建文件
+                    case 'file_start': {
+                        if (payload.fileName) {
+                            codeStore.beginFileStream(requestId, {
+                                fileName: payload.fileName,
+                                language: payload.language ?? '',
+                                isNewFile: !!payload.isNewFile,
+                                oldValue: payload.oldValue ?? '',
+                            });
+                        }
+                        break;
+                    }
+                    // 逐行追加代码到文件
+                    case 'code': {
+                        if (payload.fileName && typeof payload.line === 'string') {
+                            codeStore.appendFileLine(payload.fileName, payload.line);
+                        }
+                        break;
+                    }
+                    // 文件结束：用权威内容覆盖
+                    case 'file_end': {
+                        if (payload.fileName) {
+                            codeStore.finishFileStream(payload.fileName, payload.content ?? '');
+                        }
+                        break;
+                    }
+                    // 兜底：未命名事件但带 content，按思考文本处理
+                    default: {
+                        if (typeof payload.content === 'string') {
+                            streamedContent += payload.content;
+                            updateAssistantMessage(requestId, streamedContent);
+                        }
+                    }
+                }
+
+                resetIdleTimer()
             };
 
             const processBuffer = () => {
@@ -411,7 +455,6 @@ export const useChatStream = ({
                 processBuffer();
             }
 
-            flushPendingContent()
             setRequestStatus(requestId, 'completed')
             return true
         } catch (error: unknown) {
@@ -423,6 +466,7 @@ export const useChatStream = ({
                 console.error(error);
             }
 
+            useCodeChangesStore.getState().rollbackStreamingGroup(requestId)
             setRequestStatus(requestId, failure.status, {
                 retryable: failure.retryable,
                 errorMessage: failure.message,
@@ -430,7 +474,6 @@ export const useChatStream = ({
             return false
         } finally {
             clearIdleTimer()
-            flushPendingContent();
             setIsTyping(false);
             setActiveRequestId(null);
             abortControllerRef.current = null;
@@ -440,7 +483,6 @@ export const useChatStream = ({
     }, [
         addMessage,
         conversationId,
-        flushPendingContent,
         isTyping,
         onBeforeSend,
         onConversationUpdated,

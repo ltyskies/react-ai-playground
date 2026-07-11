@@ -5,25 +5,23 @@
  * @author React AI Playground
  */
 
-import { useContext, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { debounce } from 'lodash-es';
 
 import Editor from '@/ReactAiPlayground/components/CodeEditor/Editor';
-import FileNameList from '@/ReactAiPlayground/components/CodeEditor/FileNameList';
+import FileTree from '@/ReactAiPlayground/components/CodeEditor/FileTree';
 
-import { AIPlaygroundContext } from '@/ReactAiPlayground/AIPlaygroundContext';
+import { usePlaygroundStore } from '@/store/playgroundStore';
 
 /**
  * 代码编辑器容器组件
  * 统一处理当前选中文件、编辑器内容变更和销毁时的防抖清理
  */
 export default function CodeEditor() {
-    const {
-        files,
-        updateFileValue,
-        selectedFileName,
-        setSelectedFileName,
-    } = useContext(AIPlaygroundContext);
+    const files = usePlaygroundStore((state) => state.files);
+    const updateFileValue = usePlaygroundStore((state) => state.updateFileValue);
+    const selectedFileName = usePlaygroundStore((state) => state.selectedFileName);
+    const setSelectedFileName = usePlaygroundStore((state) => state.setSelectedFileName);
 
     // 选中文件被删除或重命名时，回退到当前文件列表里的第一个文件。
     const fallbackFileName = Object.keys(files)[0];
@@ -62,9 +60,18 @@ export default function CodeEditor() {
     }
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
-            <FileNameList />
-            <div style={{ flex: 1, minHeight: 0 }}>
+        <div style={{ display: 'flex', height: '100%', minHeight: 0 }}>
+            <div
+                style={{
+                    width: 230,
+                    flexShrink: 0,
+                    minHeight: 0,
+                    borderRight: '1px solid var(--color-border)',
+                }}
+            >
+                <FileTree />
+            </div>
+            <div style={{ flex: 1, minHeight: 0, minWidth: 0 }}>
                 {file ? (
                     <Editor
                         file={file}
