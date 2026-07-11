@@ -33,10 +33,8 @@ export default defineConfig({
         'monaco-vendor': [/node_modules\/monaco-editor/, /node_modules\/@monaco-editor/],
         // 编译器相关库单独打包
         'compiler-vendor': [/node_modules\/@swc\/wasm-web/, /node_modules\/@typescript\/ata/],
-        // Ant Design 相关库单独打包
-        'antd-vendor': [/node_modules\/antd/, /node_modules\/@ant-design/],
-        // React 核心库单独打包
-        'react-vendor': [/node_modules\/(react|react-dom|react-router)/],
+        // React + Ant Design 核心框架合并打包（避免循环引用）
+        'framework-vendor': [/node_modules\/(react|react-dom|react-router|antd|@ant-design)/],
         // 工具库单独打包
         'utils-vendor': [/node_modules\/(zustand|immer|lodash-es|axios|classnames)/],
         // Markdown 相关库单独打包
