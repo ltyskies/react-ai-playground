@@ -11,6 +11,9 @@ import { createRoot } from 'react-dom/client'
 // React Router - 路由提供者
 import { RouterProvider } from 'react-router'
 
+// 全局设计 Token（CSS 变量：背景色、边框、阴影等）
+import '@/styles/tokens.scss'
+
 // Ant Design - 主题配置
 import { ConfigProvider } from 'antd'
 
