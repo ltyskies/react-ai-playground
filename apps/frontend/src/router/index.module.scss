@@ -1,8 +1,5 @@
 // index.module.scss — 全局样式
 
-// 设计 Token（CSS 变量）
-@use '../styles/tokens.scss';
-
 :global {
   * {
     margin: 0;
