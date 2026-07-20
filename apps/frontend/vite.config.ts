@@ -48,14 +48,6 @@ export default defineConfig({
   ],
   // 基础路径配置
   base: '/',
-  // CSS 预处理配置 - 锁定 Sass API，避免默认行为变化
-  css: {
-    preprocessorOptions: {
-      scss: {
-        api: 'modern-compiler',
-      },
-    },
-  },
   // 路径解析配置
   resolve: {
     // 路径别名 - @ 指向 src 目录
