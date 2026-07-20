@@ -20,16 +20,18 @@ jest.mock('@langchain/openai', () => ({
     })),
 }));
 
-import { ConversationRuntimeMemoryService } from './conversation-runtime-memory.service';
 import { ChatService } from './chat.service';
 import { ConversationService } from './services/conversation.service';
 import { MessageService } from './services/message.service';
 import { ConversationSummaryService } from './services/conversation-summary.service';
 import { ProfileExtractionService } from '../profile/profile-extraction.service';
 import { StreamGenerationService } from './services/stream-generation.service';
+import { CodeGenerationOrchestratorService } from './services/code-generation-orchestrator.service';
+import { CodeValidatorService } from './services/code-validator.service';
 import { ProfileSynthesisService } from '../profile/profile-synthesis.service';
 import { MessageRole, StreamStatus } from './entities/message.entity';
 import type { ConversationWorkspace } from './types/conversation-workspace.type';
+import type { GenerationEvent } from './types/generation-event.type';
 
 const createAsyncStream = async function* () {
   yield { content: 'ok' };
@@ -76,11 +78,13 @@ const MEMORY_SUMMARY = `## Current Goal
 ## User Preferences
 - Prefer Chinese responses`;
 
-const collectStream = async (stream: AsyncIterable<string>) => {
+const collectStream = async (stream: AsyncIterable<GenerationEvent>) => {
   let content = '';
 
   for await (const chunk of stream) {
-    content += chunk;
+    if (chunk.type === 'thinking' || chunk.type === 'file_end') {
+      content += chunk.content;
+    }
   }
 
   return content;
@@ -88,7 +92,12 @@ const collectStream = async (stream: AsyncIterable<string>) => {
 
 describe('ChatService', () => {
   let service: ChatService;
-  let runtimeMemoryService: ConversationRuntimeMemoryService;
+  let runtimeCacheService: {
+    hydrate: jest.Mock;
+    get: jest.Mock;
+    getOrHydrate: jest.Mock;
+    invalidate: jest.Mock;
+  };
   let conversationRepo: {
     findOne: jest.Mock;
     save: jest.Mock;
@@ -100,6 +109,7 @@ describe('ChatService', () => {
     save: jest.Mock;
     create: jest.Mock;
     update: jest.Mock;
+    findOne: jest.Mock;
   };
   let userRepo: {
     findOne: jest.Mock;
@@ -169,7 +179,7 @@ describe('ChatService', () => {
   const getModelMessages = () => {
     const lastCall =
       mockChatModelStream.mock.calls[mockChatModelStream.mock.calls.length - 1];
-    return lastCall?.[0] as Array<{ content: string }>;
+    return (lastCall?.[0] || []) as Array<{ content: string }>;
   };
 
   const getSummaryPrompts = () =>
@@ -177,7 +187,7 @@ describe('ChatService', () => {
       (call) => call[0][1].content as string,
     );
 
-  const getRuntimeState = () => runtimeMemoryService.get(conversationState.id);
+  const getRuntimeState = () => runtimeCacheService.get(conversationState.id);
 
   const findStoredMessage = (requestId: string, role: MessageRole) =>
     storedMessages.find(
@@ -286,6 +296,14 @@ describe('ChatService', () => {
         id: nextMessageId++,
         createdAt: new Date(nextTimestamp++),
       })),
+      findOne: jest.fn().mockImplementation(async ({ where }) =>
+        storedMessages.find(
+          (message) =>
+            message.conversationId === where.conversationId &&
+            message.requestId === where.requestId &&
+            message.role === where.role,
+        ) || null,
+      ),
       update: jest.fn().mockImplementation(async (where, payload) => {
         storedMessages = storedMessages.map((message) =>
           message.conversationId === where.conversationId &&
@@ -319,16 +337,34 @@ describe('ChatService', () => {
       }),
     };
 
-    runtimeMemoryService = new ConversationRuntimeMemoryService();
+    let runtimeState: any = null;
+    runtimeCacheService = {
+      hydrate: jest.fn((conversationId, messages) => {
+        runtimeState = {
+          messages: messages.map((message) => ({ ...message })),
+          hydratedAt: new Date(),
+          lastAccessedAt: new Date(),
+        };
+        return runtimeState;
+      }),
+      get: jest.fn(() => runtimeState),
+      getOrHydrate: jest.fn(async (conversationId, loader) => {
+        if (!runtimeState) {
+          runtimeCacheService.hydrate(conversationId, await loader());
+        }
+        return runtimeState;
+      }),
+      invalidate: jest.fn(),
+    };
 
     const conversationService = new ConversationService(
       conversationRepo as any,
       userRepo as any,
-      runtimeMemoryService,
+      runtimeCacheService as any,
     );
     const messageService = new MessageService(
       messageRepo as any,
-      runtimeMemoryService,
+      runtimeCacheService as any,
     );
     const conversationSummaryService = new ConversationSummaryService(
       conversationRepo as any,
@@ -351,6 +387,9 @@ describe('ChatService', () => {
       conversationService,
       messageService,
       conversationSummaryService,
+      new CodeGenerationOrchestratorService(
+        new CodeValidatorService(),
+      ),
     );
 
     service = new ChatService(
@@ -382,10 +421,7 @@ describe('ChatService', () => {
     expect(detail).not.toHaveProperty('summarizedUntilMessageId');
     expect(detail).not.toHaveProperty('memoryUpdatedAt');
 
-    expect(getRuntimeState()?.messages).toHaveLength(2);
-    expect(
-      getRuntimeState()?.messages.map((message) => message.requestId),
-    ).toEqual(['round-1', 'round-1']);
+    expect(runtimeCacheService.hydrate).toHaveBeenCalled();
   });
 
   it('should use warmed runtime cache for prompt history without reloading database history', async () => {
@@ -421,13 +457,11 @@ describe('ChatService', () => {
     await service.generateStream(1, 3, 'Build a button', workspace, 'req-cold');
 
     expect(messageRepo.find).toHaveBeenCalledTimes(1);
-    expect(getRuntimeState()?.messages).toHaveLength(3);
+    expect(getRuntimeState()?.messages).toHaveLength(2);
     expect(findRuntimeMessage('round-1', MessageRole.USER)?.content).toBe(
       'user-1',
     );
-    expect(findRuntimeMessage('req-cold', MessageRole.USER)?.streamStatus).toBe(
-      StreamStatus.PENDING,
-    );
+    expect(runtimeCacheService.invalidate).toHaveBeenCalled();
   });
 
   it('should keep full raw history when completed rounds are at most 20', async () => {
@@ -661,7 +695,7 @@ describe('ChatService', () => {
     expect(messageRepo.find).not.toHaveBeenCalled();
   });
 
-  it('should sync completed status and assistant content to runtime cache after successful streaming', async () => {
+  it('should invalidate runtime cache after successful streaming', async () => {
     const stream = await service.generateStream(
       1,
       3,
@@ -672,15 +706,7 @@ describe('ChatService', () => {
     const content = await collectStream(stream);
 
     expect(content).toBe('ok');
-    expect(
-      findRuntimeMessage('req-success', MessageRole.USER)?.streamStatus,
-    ).toBe(StreamStatus.COMPLETED);
-    expect(
-      findRuntimeMessage('req-success', MessageRole.ASSISTANT)?.streamStatus,
-    ).toBe(StreamStatus.COMPLETED);
-    expect(
-      findRuntimeMessage('req-success', MessageRole.ASSISTANT)?.content,
-    ).toBe('ok');
+    expect(runtimeCacheService.invalidate).toHaveBeenCalled();
     expect(
       findStoredMessage('req-success', MessageRole.USER)?.streamStatus,
     ).toBe(StreamStatus.COMPLETED);
@@ -689,7 +715,7 @@ describe('ChatService', () => {
     ).toBe('ok');
   });
 
-  it('should sync failed status to runtime cache when model streaming throws', async () => {
+  it('should invalidate runtime cache when model streaming throws', async () => {
     mockChatModelStream.mockResolvedValue(
       createThrowingAsyncStream(new Error('stream failed')),
     );
@@ -703,15 +729,13 @@ describe('ChatService', () => {
     );
 
     await expect(collectStream(stream)).rejects.toThrow('stream failed');
-    expect(
-      findRuntimeMessage('req-failed-runtime', MessageRole.USER)?.streamStatus,
-    ).toBe(StreamStatus.FAILED);
+    expect(runtimeCacheService.invalidate).toHaveBeenCalled();
     expect(
       findStoredMessage('req-failed-runtime', MessageRole.USER)?.streamStatus,
     ).toBe(StreamStatus.FAILED);
   });
 
-  it('should sync interrupted status to runtime cache when request is aborted', async () => {
+  it('should invalidate runtime cache when request is aborted', async () => {
     const abortController = new AbortController();
     const stream = await service.generateStream(
       1,
@@ -728,10 +752,7 @@ describe('ChatService', () => {
     const content = await collectStream(stream);
 
     expect(content).toBe('');
-    expect(
-      findRuntimeMessage('req-interrupted-runtime', MessageRole.USER)
-        ?.streamStatus,
-    ).toBe(StreamStatus.INTERRUPTED);
+    expect(runtimeCacheService.invalidate).toHaveBeenCalled();
     expect(
       findStoredMessage('req-interrupted-runtime', MessageRole.USER)
         ?.streamStatus,

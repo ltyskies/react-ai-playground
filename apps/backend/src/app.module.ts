@@ -14,6 +14,7 @@ import { AuthModule } from './auth/auth.module';
 import { ChatModule } from './chat/chat.module';
 import configuration from './config/configuration';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { RedisModule } from './redis/redis.module';
 
 /**
  * 应用程序根模块
@@ -26,6 +27,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     JwtModule,
     ChatModule,
     AuthModule,
+    RedisModule,
 
     // 1. 全局配置模块
     ConfigModule.forRoot({

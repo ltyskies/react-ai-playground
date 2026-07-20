@@ -4,7 +4,7 @@
  */
 
 import { MessageRole } from '../entities/message.entity';
-import type { ConversationRuntimeMessage } from '../types/conversation-runtime-memory.type';
+import type { ConversationRuntimeMessage } from '../types/conversation-runtime-cache.type';
 
 /**
  * 获取消息展示文本

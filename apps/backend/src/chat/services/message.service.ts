@@ -12,10 +12,10 @@ import {
   SystemMessage,
 } from '@langchain/core/messages';
 import { Message, MessageRole, StreamStatus } from '../entities/message.entity';
-import { ConversationRuntimeMemoryService } from '../conversation-runtime-memory.service';
+import { ConversationRuntimeCacheService } from '../conversation-runtime-cache.service';
 import { Conversation } from '../entities/conversation.entity';
 import { getDisplayContent } from '../prompts';
-import type { ConversationRuntimeMessage } from '../types/conversation-runtime-memory.type';
+import type { ConversationRuntimeMessage } from '../types/conversation-runtime-cache.type';
 import type { PersistedCodeChange } from '../types/generation-event.type';
 
 export interface SaveMessageOptions {
@@ -29,7 +29,7 @@ export class MessageService {
   constructor(
     @InjectRepository(Message)
     private messageRepo: Repository<Message>,
-    private conversationRuntimeMemoryService: ConversationRuntimeMemoryService,
+    private conversationRuntimeCacheService: ConversationRuntimeCacheService,
   ) {}
 
   /** 从数据库加载会话完整历史 */
@@ -42,7 +42,7 @@ export class MessageService {
 
   /** 获取运行时消息历史（优先缓存） */
   async getConversationRuntimeMessages(conversationId: number) {
-    const state = await this.conversationRuntimeMemoryService.getOrHydrate(
+    const state = await this.conversationRuntimeCacheService.getOrHydrate(
       conversationId,
       async () => {
         const history =
@@ -101,7 +101,7 @@ export class MessageService {
           streamStatus: StreamStatus.PENDING,
         });
         const runtimeMessage = this.toRuntimeMessage(updatedUserMessage);
-        this.conversationRuntimeMemoryService.upsertMessage(runtimeMessage);
+        await this.conversationRuntimeCacheService.invalidate(conversationId);
         return runtimeMessage;
       }
       return existingUserMessage;
@@ -114,7 +114,7 @@ export class MessageService {
       { requestId, streamStatus: StreamStatus.PENDING },
     );
     const runtimeMessage = this.toRuntimeMessage(savedUserMessage);
-    this.conversationRuntimeMemoryService.upsertMessage(runtimeMessage);
+    await this.conversationRuntimeCacheService.invalidate(conversationId);
     await updateConversationCallback(conversation, content);
     return runtimeMessage;
   }
@@ -147,7 +147,7 @@ export class MessageService {
         streamStatus: StreamStatus.COMPLETED,
       });
       const runtimeMessage = this.toRuntimeMessage(updatedAssistantMessage);
-      this.conversationRuntimeMemoryService.upsertMessage(runtimeMessage);
+      await this.conversationRuntimeCacheService.invalidate(conversationId);
       return runtimeMessage;
     }
 
@@ -162,7 +162,7 @@ export class MessageService {
       },
     );
     const runtimeMessage = this.toRuntimeMessage(savedAssistantMessage);
-    this.conversationRuntimeMemoryService.upsertMessage(runtimeMessage);
+    await this.conversationRuntimeCacheService.invalidate(conversationId);
     return runtimeMessage;
   }
 
@@ -207,11 +207,7 @@ export class MessageService {
         { streamStatus: status },
       ),
     ]);
-    this.conversationRuntimeMemoryService.updateRequestStatus(
-      conversationId,
-      requestId,
-      status,
-    );
+    await this.conversationRuntimeCacheService.invalidate(conversationId);
   }
 
   /** 转换为运行时消息结构 */

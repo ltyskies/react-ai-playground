@@ -19,7 +19,7 @@ import {
   buildConversationSummaryPrompt,
 } from '../prompts';
 import type { CompletedConversationRound } from '../prompts';
-import type { ConversationRuntimeMessage } from '../types/conversation-runtime-memory.type';
+import type { ConversationRuntimeMessage } from '../types/conversation-runtime-cache.type';
 import {
   SUMMARY_TRIGGER_ROUNDS,
   RAW_HISTORY_RETENTION_ROUNDS,

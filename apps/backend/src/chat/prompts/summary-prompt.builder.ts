@@ -3,7 +3,7 @@
  * @description 构建长对话摘要相关的提示词模板
  */
 
-import type { ConversationRuntimeMessage } from '../types/conversation-runtime-memory.type';
+import type { ConversationRuntimeMessage } from '../types/conversation-runtime-cache.type';
 import { getDisplayContent } from './message-display';
 
 /**

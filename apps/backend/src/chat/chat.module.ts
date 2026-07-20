@@ -8,7 +8,7 @@ import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ChatService } from './chat.service';
 import { ChatController } from './chat.controller';
-import { ConversationRuntimeMemoryService } from './conversation-runtime-memory.service';
+import { ConversationRuntimeCacheService } from './conversation-runtime-cache.service';
 import { ProfileModule } from '../profile/profile.module';
 import { ConversationService } from './services/conversation.service';
 import { MessageService } from './services/message.service';
@@ -33,7 +33,7 @@ import { User } from '../user/entities/user.entity';
   controllers: [ChatController],
   providers: [
     ChatService,
-    ConversationRuntimeMemoryService,
+    ConversationRuntimeCacheService,
     ConversationService,
     MessageService,
     ConversationSummaryService,

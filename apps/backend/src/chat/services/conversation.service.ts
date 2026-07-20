@@ -12,7 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Conversation } from '../entities/conversation.entity';
-import { ConversationRuntimeMemoryService } from '../conversation-runtime-memory.service';
+import { ConversationRuntimeCacheService } from '../conversation-runtime-cache.service';
 import { StreamStatus } from '../entities/message.entity';
 import { getDisplayContent } from '../prompts';
 import type { ConversationWorkspace } from '../types/conversation-workspace.type';
@@ -26,7 +26,7 @@ export class ConversationService {
     private conversationRepo: Repository<Conversation>,
     @InjectRepository(User)
     private userRepo: Repository<User>,
-    private conversationRuntimeMemoryService: ConversationRuntimeMemoryService,
+    private conversationRuntimeCacheService: ConversationRuntimeCacheService,
   ) {}
 
   /** 校验用户 ID，未登录时抛出异常 */
@@ -76,6 +76,7 @@ export class ConversationService {
       conversationId,
     );
     await this.conversationRepo.remove(conversation);
+    await this.conversationRuntimeCacheService.invalidate(conversationId);
     return { deleted: true };
   }
 
@@ -101,7 +102,7 @@ export class ConversationService {
         createdAt: new Date(message.createdAt),
       }));
 
-    this.conversationRuntimeMemoryService.hydrate(
+    await this.conversationRuntimeCacheService.hydrate(
       conversation.id,
       runtimeMessages,
     );

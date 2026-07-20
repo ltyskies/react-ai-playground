@@ -74,7 +74,10 @@ export class SentinelCodeParser {
 
         // 起始哨兵完整
         if (startIndex > 0) {
-          tokens.push({ kind: 'thinking', text: this.buffer.slice(0, startIndex) });
+          tokens.push({
+            kind: 'thinking',
+            text: this.buffer.slice(0, startIndex),
+          });
         }
         this.currentFileName = this.buffer
           .slice(startIndex + START_PREFIX.length, suffixIndex)

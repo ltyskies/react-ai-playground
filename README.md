@@ -96,8 +96,15 @@ pnpm dev
 | `DEEPSEEK_API_KEY` | DeepSeek API Key |
 | `DEEPSEEK_BASE_URL` | DeepSeek API 地址 |
 | `DEEPSEEK_MODEL` | 模型名称 |
+| `REDIS_HOST` | Redis 主机，默认 `127.0.0.1` |
+| `REDIS_PORT` | Redis 端口，默认 `6379` |
+| `REDIS_PASSWORD` | Redis 密码，可为空 |
+| `REDIS_DB` | Redis 数据库编号，默认 `0` |
+| `REDIS_KEY_PREFIX` | Redis key 前缀 |
+| `REDIS_CONVERSATION_TTL_SECONDS` | 会话缓存基础 TTL，默认 `1800` |
+| `REDIS_CONVERSATION_TTL_JITTER_SECONDS` | TTL 随机抖动，默认 `300` |
 
-
+后端连接已有 Redis 实例，默认地址为 `127.0.0.1:6379`。Redis 只缓存会话运行时上下文，MySQL 仍是历史消息的唯一数据源。Redis 不可用时后端会回源 MySQL；消息写入 MySQL 成功后删除对应 Redis 会话缓存。
 
 ## 常用命令 / Commands
 

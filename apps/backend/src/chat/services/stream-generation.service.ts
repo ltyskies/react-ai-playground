@@ -250,7 +250,7 @@ export class StreamGenerationService {
           yield {
             type: 'thinking',
             content: content.slice(i, i + REPLAY_CHUNK_SIZE),
-          } as GenerationEvent;
+          };
         }
       }
 
